@@ -1,0 +1,3 @@
+[submodule "gym_envs_urdfs"]
+	path = gym_envs_urdfs
+	url = https://github.com/maxspahn/gym_envs_urdf.git
