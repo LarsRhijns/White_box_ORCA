@@ -1,31 +1,43 @@
 import gym
-from urdfenvs.robots.prius import Prius
+from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import numpy as np
 
+robot_amount = 6
+circle_radius = 2
+velocity = 0.5
 
-def run_prius(n_steps=5000, render=False, goal=True, obstacles=True):
-    robots = [
-        Prius(mode="vel"),
-    ]
-    env = gym.make(
-        "urdf-env-v0",
-        dt=0.01, robots=robots, render=render
-    )
-    action = np.array([1.5, 0.5])
-    pos0 = np.array([-1.0, 0.2, -1.0])
-    ob = env.reset(pos=pos0)
+def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
+    robots = []
+    for i in range(robot_amount):
+        robots.append(GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"))
 
-    # Add shape rectangular shape to the environment
-    env.add_shapes(shape_type="GEOM_BOX", dim=np.array([0.2, 8, 0.5]), mass=0, poses_2d=[[4, -0.1, 0]])
+    env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
+    n = env.n()
+
+    ns_per_robot = env.ns_per_robot()  # DoF per robot
+    initial_positions = np.zeros((len(robots), ns_per_robot[0]))
+    action = np.zeros(n)
+    # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
+
+    count = 0
+    for i in range(robot_amount):
+        angle = ((2 * np.pi) / robot_amount) * i
+        position = np.array([circle_radius * np.cos(angle), circle_radius * np.sin(angle), 0])
+        initial_positions[i, :] = position
+
+        action[count: count + ns_per_robot[i]] = -np.array([velocity * np.cos(angle), velocity * np.sin(angle), 0])
+        count += ns_per_robot[i]
+
+    ob = env.reset(pos=initial_positions)
     print(f"Initial observation : {ob}")
+
     history = []
-    for i in range(n_steps):
+    for _ in range(n_steps):
         ob, _, _, _ = env.step(action)
-        if ob['robot_0']['joint_state']['steering'] > 0.2:
-            action[1] = 0
         history.append(ob)
     env.close()
     return history
 
+
 if __name__ == "__main__":
-    run_prius(render=True)
+    run_point_robot(render=True)
