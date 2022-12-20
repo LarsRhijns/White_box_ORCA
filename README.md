@@ -14,5 +14,6 @@ Run the code below to initialize the repository. Run it in the location you want
     git clone git@github.com:LarsRhijns/PDM_Project.git
     git submodule init
     git submodule update
+    cd gym_envs_urdfs
     pip3 install .
 ```
