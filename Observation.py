@@ -3,10 +3,10 @@ from Robot import Robot
 from Static import Static
 
 class Observation():
-    def __init__(self, dt: int):
+    def __init__(self, dt: float):
         self.obstacles: list[Obstacle] = []
         self.plot_index: int = -1 # Initialize to -1 since there are no robots to start with thus triggering an error on purpose when accessed
-        self.dt: int = dt
+        self.dt: float = dt
 
     # Add a robot to the obstacles
     # Python has no overloading therefore the indexation
