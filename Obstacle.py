@@ -1,14 +1,16 @@
+import numpy as np
+
 class Obstacle():
 
     # Super class for 
-    def __init__(self, position: tuple, radius: int):
+    def __init__(self, position: np.ndarray, radius: int):
         # Initialize parameters
-        self.pos: tuple = position # (x, y)
-        self.r: int = radius
+        self.pos: np.ndarray = position # (x, y)
+        self.radius: int = radius
 
         # Initialize move instructions as 0 for the time being
-        self.Vref: tuple = (0, 0) # (Vref_x, Vref_y)
-        self.Vcur: tuple = (0, 0) # (Vref_x, Vref_y)
+        self.Vref: np.ndarray = np.zeros(2) # (Vref_x, Vref_y)
+        self.Vcur: np.ndarray = np.zeros(2) # (Vref_x, Vref_y)
 
     def toString(self) -> str:
         raise RuntimeError("Abstract obstacle should not have been created and has no toString method")
