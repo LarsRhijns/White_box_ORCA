@@ -64,28 +64,26 @@ class Observation():
     # Loop over the robots and make them all do an orca cycle
     # TODO this assumes that the obstacle list does not change order for the simulation and this class
     # Returns a list with all the new velocities for the obstacles (as tuples)
-    def orca_cycle_all(self) -> list:
+    def orca_cycle_all(self):
         new_velocities = [] # Will be a list with tuples
         for obstacle in self.obstacles:
             if isinstance(obstacle, Robot):
-                v_new = obstacle.orca_cycle(self.obstacles, self.dt)
-                new_velocities.append(v_new)
-
+                obstacle.set_current_velocity(obstacle.orca_cycle(self.obstacles, self.dt))
 
         if isinstance(self.obstacles[self.plot_index], Robot):
             self.obstacles[self.plot_index].plot_orca_info()
         else:
             raise RuntimeError("The selected plot index is not a robot")
 
-        return new_velocities
-
 # Example main for testing purposes
 if __name__ == "__main__":
     ob = Observation(0.1)
     ob.add_robot2(np.array([0, 0]), 1, np.array([1, 1]))
     ob.add_robot2(np.array([4, 6]), 1, np.array([-2, -4]))
-    # ob.add_robot2(np.array([-1, 0]), 1, np.array([1, 0]))
-    # ob.add_robot2(np.array([0, -1]), 1, np.array([0, 1]))
+    # ob.add_robot2(np.array([-4, -6]), 1, np.array([2, 4]))
+    # ob.add_robot2(np.array([0, 4]), 1, np.array([0, -1]))
+    # ob.add_robot2(np.array([-4, 0]), 1, np.array([1, 0]))
+    # ob.add_robot2(np.array([0, -4]), 1, np.array([0, 1]))
     # ob.add_static((1, 0), 1)
     # ob.obstacles[0].set_position((5, 5))
     ob.orca_cycle_all()

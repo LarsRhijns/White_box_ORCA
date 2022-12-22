@@ -15,4 +15,5 @@ Run the code below to initialize the repository. Run it in the location you want
     git submodule init
     git submodule update
     pip3 install .
+    pip install shapely
 ```

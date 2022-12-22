@@ -79,8 +79,8 @@ class VelocityObstacle:
         polygon_points = []
         polygon_points.append(points[0])
         polygon_points.append(points[1])
-        polygon_points.append(polygon_points[1] + np.array([0, 0.5 * self.constraint[-1]]))
-        polygon_points.append(polygon_points[0] + np.array([0, 0.5 * self.constraint[-1]]))
+        polygon_points.append(polygon_points[1] - np.array([0, 0.5 * self.constraint[-1]]))
+        polygon_points.append(polygon_points[0] - np.array([0, 0.5 * self.constraint[-1]]))
         constrain = Polygon(polygon_points)
 
         return vo_polygon, self.constraint, constrain

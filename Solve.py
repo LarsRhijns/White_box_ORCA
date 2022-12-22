@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.spatial import HalfspaceIntersection, ConvexHull
 from scipy.optimize import linprog
-
+from shapely.geometry import Point, Polygon
+from shapely.ops import nearest_points
 
 class Solve:
     def __init__(self, constraints):
@@ -26,8 +27,16 @@ class Solve:
         A = np.array(A)
         b = np.array(b)
 
-        points = self.calculate_polygon(A, b)
-        return points
+        bbox = [(-30, 30), (-30, 30)]
+        points, int_point = self.plot_convex_set(A, b, bbox)
+        if points is not None:
+
+            poly = Polygon(points)
+            point = Point(reference_point[0], reference_point[1])
+            p1, p2 = nearest_points(poly, point)
+            solution = np.array(list(p1.coords)[0])
+
+            return solution
 
     def feasible_point(self, A, b):
         # finds the center of the largest sphere fitting in the convex hull
@@ -47,6 +56,29 @@ class Solve:
         except:
             import warnings
             warnings.warn("No solution found", Warning)
+
+    def add_bbox(self, A, b, xrange, yrange):
+        A = np.vstack((A, [
+            [-1, 0],
+            [1, 0],
+            [0, -1],
+            [0, 1],
+        ]))
+        b = np.hstack((b, [-xrange[0], xrange[1], -yrange[0], yrange[1]]))
+        return A, b
+
+    def plot_convex_set(self, A, b, bbox):
+        # solve and plot just the convex set (no lines for the inequations)
+        A_, b_ = self.add_bbox(A, b, *bbox)
+        interior_point = self.feasible_point(A_, b_)
+        hs = self.hs_intersection(A_, b_)
+        if hs is not None:
+            points = hs.intersections
+            hull = ConvexHull(points)
+            points = points[hull.vertices]
+            return points, interior_point
+        else:
+            return None, None
 
     def calculate_polygon(self, A, b):
         hs = self.hs_intersection(A, b)

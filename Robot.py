@@ -34,15 +34,7 @@ class Robot(Obstacle):
             else:
                 counter += 1
 
-        # TODO: met deze constraints maak ik de region bounded ipv inf. Zonder deze constraints krijg je de error die ik appte
-        constraints = np.vstack((constraints, [0, -20, 1]))
-        constraints = np.vstack((constraints, [2, -60, 1]))
-        constraints = np.vstack((constraints, [-2, -60, 1]))
-
-        constraints = np.vstack((constraints, [0, 20, -1]))
-        constraints = np.vstack((constraints, [-2, 60, -1]))
-        constraints = np.vstack((constraints, [2, 60, -1]))
-
+        print(constraints)
         solver = Solve(constraints)
         velocity = solver.solve(self.get_reference_velocity())
 
@@ -67,17 +59,14 @@ class Robot(Obstacle):
             ax2.add_patch(constrain)
             ax2.axline((0, line[1]), slope=line[0], color='black')
 
-        ax2.axline((0, 20), slope=0, color='red')
-        ax2.axline((0, 60), slope=-2, color='red')
-        ax2.axline((0, 60), slope=2, color='red')
+        ax2.plot(self.Vcur[0], self.Vcur[1], marker="o", color="blue")
+        ax2.plot(self.Vref[0], self.Vref[1], marker="o", color="yellow")
+        # ax2.arrow(0, 0, self.Vref[0], self.Vref[1], head_width=0.5, head_length=0.5, fc="black", ec="black")
 
-        ax2.axline((0, -20), slope=0, color='green')
-        ax2.axline((0, -60), slope=2, color='green')
-        ax2.axline((0, -60), slope=-2, color='green')
         ax1.grid()
         ax2.grid()
         plt.setp(ax1, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle")
-        plt.setp(ax2, xlim=[-30, 30], ylim=[-30, 30], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
+        plt.setp(ax2, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
         plt.show(block=True)
 
     # Get function for its current velocity
