@@ -3,10 +3,10 @@ import numpy as np
 class Obstacle():
 
     # Super class for 
-    def __init__(self, position: np.ndarray, radius: int):
+    def __init__(self, position: np.ndarray, radius: float):
         # Initialize parameters
         self.pos: np.ndarray = position # (x, y)
-        self.radius: int = radius
+        self.radius: float = radius
 
         # Initialize move instructions as 0 for the time being
         self.Vref: np.ndarray = np.zeros(2) # (Vref_x, Vref_y)

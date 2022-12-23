@@ -8,19 +8,23 @@ class Solve:
     def __init__(self, constraints):
         self.constraints = constraints
 
+    # TODO: fix the bug, see app
     def solve(self, reference_point):
         A = []
         b = []
         for i in range(self.constraints.shape[0]):
-            if self.constraints[i, 2] == -1:
+            if self.constraints[i, 2] == -1 and self.constraints[i, 1] != None:
                 A.append([self.constraints[i, 0], -1])
                 if self.constraints[i, 0] < 0:
                     b.append(-1 * (self.constraints[i, 1]))
-                elif self.constraints[i, 1] < 0 < self.constraints[i, 0]:
+                elif self.constraints[i, 1] < 0 and self.constraints[i, 0] > 0:
                     b.append(-1 * (self.constraints[i, 1]))
                 else:
                     b.append(self.constraints[i, 1])
-            else:
+            elif self.constraints[i, 1] == None:
+                A.append([-self.constraints[i, 2], 0])
+                b.append(self.constraints[i, -0])
+            elif self.constraints[i, 2] == 1 and self.constraints[i, 1] != None:
                 A.append([-1 * self.constraints[i, 0], 1])
                 b.append(self.constraints[i, 1])
 
