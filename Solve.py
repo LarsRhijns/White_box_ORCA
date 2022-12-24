@@ -19,6 +19,8 @@ class Solve:
                     b.append(-1 * (self.constraints[i, 1]))
                 elif self.constraints[i, 1] < 0 and self.constraints[i, 0] > 0:
                     b.append(-1 * (self.constraints[i, 1]))
+                elif self.constraints[i, 1] > 0 and self.constraints[i, 0] > 0:
+                    b.append(-1 * (self.constraints[i, 1]))
                 else:
                     b.append(self.constraints[i, 1])
             elif self.constraints[i, 1] is None and self.constraints[i, 2] == 1:
