@@ -21,9 +21,12 @@ class Solve:
                     b.append(-1 * (self.constraints[i, 1]))
                 else:
                     b.append(self.constraints[i, 1])
-            elif self.constraints[i, 1] == None:
+            elif self.constraints[i, 1] is None and self.constraints[i, 2] == 1:
                 A.append([-self.constraints[i, 2], 0])
-                b.append(self.constraints[i, -0])
+                b.append(-self.constraints[i, 0])
+            elif self.constraints[i, 1] is None and self.constraints[i, 2] == -1:
+                A.append([-self.constraints[i, 2], 0])
+                b.append(self.constraints[i, 0])
             elif self.constraints[i, 2] == 1 and self.constraints[i, 1] != None:
                 A.append([-1 * self.constraints[i, 0], 1])
                 b.append(self.constraints[i, 1])
@@ -93,11 +96,3 @@ class Solve:
             return points
         else:
             return None
-
-# lines = np.array([[0.5, -5, -1],
-#                   [2, -4, 1],
-#                   [4, -8, -1],
-#                   [-1, 10, 1]])
-#
-# solution = free_space(lines)
-# print(solution)
