@@ -122,12 +122,17 @@ class Observation():
 # Zie de comment onderaan de loop voor het veranderen van het simulatie gedrag
 if __name__ == "__main__":
     simulation_cycle = 0.01
-    orca_update_cycle = 0.5  # Verander deze waarde naar 1.0 voor een betere simulatie
+    orca_update_cycle = 1.0 # Verander deze waarde naar 1.0 voor een betere simulatie
     ob = Observation(orca_update_cycle, simulation_cycle)
 
     # Add robots to the simulations
-    ob.add_robot3(np.array([2.5, 0]), 1, np.array([-4, 0]), np.array([-4, 0]))
-    ob.add_robot3(np.array([-2.5, 0]), 1, np.array([4, 0]), np.array([4, 0]))
+    speed = 5.0
+    radius = 1
+
+    ob.add_robot3(np.array([5, 5]), radius, np.array([-speed, -speed]), np.array([-5, -5]))
+    ob.add_robot3(np.array([-5, -5]), radius, np.array([speed, speed]), np.array([5, 5]))
+    ob.add_robot3(np.array([-5, 5]), radius, np.array([speed, -speed]), np.array([5, -5]))
+    ob.add_robot3(np.array([5, -5]), radius, np.array([-speed, speed]), np.array([-5, 5]))
 
     for t in np.arange(0, 5, simulation_cycle):
         new_positions = []
@@ -145,6 +150,6 @@ if __name__ == "__main__":
 
         ob.update_position_plot()
 
-        plt.show(block=True)  # TODO: als False veranderd loopt de simulatie door!!!
+        plt.show(block=False)  # TODO: als False veranderd loopt de simulatie door!!!
         clear_output(wait=True)
         plt.pause(0.001)

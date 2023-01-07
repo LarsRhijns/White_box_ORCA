@@ -8,8 +8,8 @@ class Solve:
     def __init__(self, constraints):
         self.constraints = constraints
 
-    # TODO: fix the bug, see app
     def solve(self, reference_point):
+        # Reshape constraints matrix to Ax + b <= 0 format for scipy halfspace calculation
         A = []
         b = []
         for i in range(self.constraints.shape[0]):
@@ -57,6 +57,7 @@ class Solve:
         return res.x[:-1]
 
     def hs_intersection(self, A, b):
+        # Try to calculate halfspace intersection if possible
         interior_point = self.feasible_point(A, b)
         halfspaces = np.hstack((A, -b[:, None]))
         try:
@@ -67,6 +68,7 @@ class Solve:
             warnings.warn("No solution found", Warning)
 
     def add_bbox(self, A, b, xrange, yrange):
+        # Determine area near robot so solution isn't inf
         A = np.vstack((A, [
             [-1, 0],
             [1, 0],
@@ -90,6 +92,7 @@ class Solve:
             return None, None
 
     def calculate_polygon(self, A, b):
+        # Calculate feasible polygon points
         hs = self.hs_intersection(A, b)
         if hs is not None:
             points = hs.intersections
