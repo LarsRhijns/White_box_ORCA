@@ -28,15 +28,12 @@ class VelocityObstacle:
         self.__angle = np.arctan2(circle_centre[1], circle_centre[0])  # Calculate the angle of the relative position vector (circle centre)
         circle_centre = self.rotation(circle_centre, -self.__angle)  # Rotate the relative position vector, so it lies on the x-axis
 
-        self.__tangent_rc = abs(self.radius / (np.sqrt(circle_centre[0] ** 2 - self.radius ** 2)))  # Calculate the direction coefficient of a line from the origin tangent to the circle (always positive)
+        self.__tangent_rc = abs(self.radius / (np.sqrt(abs(circle_centre[0] ** 2 - self.radius ** 2))))  # Calculate the direction coefficient of a line from the origin tangent to the circle (always positive)
         x_cord = (circle_centre[0] + np.sqrt(abs(self.radius ** 2 + self.__tangent_rc ** 2 * self.radius ** 2 - circle_centre[0] ** 2 * self.__tangent_rc ** 2))) / (1 + self.__tangent_rc ** 2)  # Calculate x coordinate from intersection point between circle and line from the origin
         self.__intersection = np.array([x_cord, self.__tangent_rc * x_cord])  # Define the intersection
 
         # Define velocity obstacle polygon
-        print(self.__intersection)
-        print(circle_centre)
         angle_tangent_centre = np.arctan2((self.__intersection - circle_centre)[1], (self.__intersection - circle_centre)[0])
-        print(angle_tangent_centre)
         angles = np.arange(angle_tangent_centre, 2 * np.pi - angle_tangent_centre, step=np.pi / 180)
         circle_points = np.array([np.cos(angles) * self.radius, np.sin(angles) * self.radius]).T + circle_centre
         self.polygon_points = np.vstack(([20, self.__tangent_rc * 20], circle_points, [20, -self.__tangent_rc * 20], [20, self.__tangent_rc * 20])).T

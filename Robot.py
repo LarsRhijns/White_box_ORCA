@@ -27,7 +27,7 @@ class Robot(Obstacle):
     # Robot should set its Vcur to this calculate velocity vector.
     # Return a tuple
     def orca_cycle(self, obstacles: list, dt: float) -> np.ndarray:
-        print("Orca cycle of robot...")
+        # print("Orca cycle of robot ", self.index)
         self.velocity_obstacles: list = []
         constraints = None
 
@@ -41,7 +41,7 @@ class Robot(Obstacle):
                 elif constraint is not None:
                     constraints = np.vstack((constraints, constraint))
 
-        print(constraints)
+        # print(constraints)
 
         if constraints is not None:
             solver = Solve(constraints)

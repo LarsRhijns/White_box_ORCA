@@ -3,14 +3,23 @@ from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import numpy as np
 from Observation import Observation
 
-orca_update_cycle = 0.5
+orca_update_cycle = 1
 simulation_cycle = 0.01
-radius = 1
+radius = 0.2 # As defined in pointRobot.urdf
 robot_amount = 4
 circle_radius = 2
 velocity = 0.5
 total_time = 20
 steps = int(total_time // simulation_cycle)
+
+
+def fetch_positions(last_observation):
+    positions = []
+    for robot in last_observation.keys():
+        positions.append(last_observation[robot]["joint_state"]["position"])
+
+    return positions
+
 
 def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     robots = []
@@ -44,29 +53,21 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     ob = env.reset(pos=initial_positions)
     print(f"Initial observation : {ob}")
 
-    history = []
+    history = [ob]
+    new_velocities = None
     for step in range(n_steps):
         current_time = step * simulation_cycle
-        new_positions = []
-
-        for i in range(len(obser.get_obstacles())):
-            robot = obser.obstacles[i]
-            # print(robot.toString())
-            new_positions.append(robot.get_position() + robot.get_current_velocity() * simulation_cycle)
-
-        # ob.update_positions(new_positions)
+        print("\n********************* TIME: ", current_time, " *********************")
+        new_positions = fetch_positions(history[-1])
+        obser.update_positions(new_positions)
 
         if current_time % orca_update_cycle == 0:
             new_velocities = obser.orca_cycle()
-            # print("New velocities: ", new_velocities)
+            print(new_velocities)
             obser.update_velocities(new_velocities)
             # obser.update_orca_plot()
 
-        # print("SHAPE: ", np.array(new_velocities).shape)
-        # print("ACTION SHAPE: ", action.shape)
         action = np.array(new_velocities).reshape(action.shape[0])
-
-
 
         ob, _, _, _ = env.step(action)
         history.append(ob)
