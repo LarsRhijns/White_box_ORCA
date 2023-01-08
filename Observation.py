@@ -6,7 +6,7 @@ import numpy as np
 from IPython.display import display, clear_output
 
 
-class Observation():
+class Observation:
     def __init__(self, orca_update_cycle: float, simulation_cycle: float):
         self.obstacles: list[Obstacle] = []
         self.plot_index: int = 0  # Initialize to -1 since there are no robots to start with thus triggering an error on purpose when accessed
