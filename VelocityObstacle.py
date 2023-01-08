@@ -33,7 +33,10 @@ class VelocityObstacle:
         self.__intersection = np.array([x_cord, self.__tangent_rc * x_cord])  # Define the intersection
 
         # Define velocity obstacle polygon
+        print(self.__intersection)
+        print(circle_centre)
         angle_tangent_centre = np.arctan2((self.__intersection - circle_centre)[1], (self.__intersection - circle_centre)[0])
+        print(angle_tangent_centre)
         angles = np.arange(angle_tangent_centre, 2 * np.pi - angle_tangent_centre, step=np.pi / 180)
         circle_points = np.array([np.cos(angles) * self.radius, np.sin(angles) * self.radius]).T + circle_centre
         self.polygon_points = np.vstack(([20, self.__tangent_rc * 20], circle_points, [20, -self.__tangent_rc * 20], [20, self.__tangent_rc * 20])).T
@@ -46,9 +49,9 @@ class VelocityObstacle:
         if polygon.contains(point):
             point1, point2 = nearest_points(polygon.exterior, Point(self.rel_vel))
             self.closest_point = np.array(list(point1.coords)[0])
-            u = self.closest_point - self.rel_vel
+            u = self.closest_point - self.rel_vel[:2]
 
-            constrain_point = self.reference.get_current_velocity() + 0.5 * u
+            constrain_point = self.reference.get_current_velocity()[:2] + 0.5 * u
 
             # Check if the solution is a vertical line, in other words a very high direction coaficient:
             if abs(u[1]) < 0.01:
@@ -154,6 +157,7 @@ class VelocityObstacle:
         # return vo_polygon, self.constraint, constrain, self.rotation(self.__intersection, -self.__angle)
 
     def rotation(self, vector, angle):
+        vector = vector[:2]
         matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
         return np.dot(matrix, vector)
 

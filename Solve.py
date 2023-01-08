@@ -43,7 +43,7 @@ class Solve:
             poly = Polygon(points)
             point = Point(reference_point[0], reference_point[1])
             p1, p2 = nearest_points(poly, point)
-            solution = np.array(list(p1.coords)[0])
+            solution = np.array(list(list(p1.coords)[0]) + [0])
 
             return solution
 

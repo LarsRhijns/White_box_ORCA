@@ -7,7 +7,7 @@ import numpy as np
 
 
 class Robot(Obstacle):
-    def __init__(self, position: np.ndarray, radius: float):
+    def __init__(self, position: np.ndarray, radius: float, index: int):
         # Initialize x, y and r
         super().__init__(position, radius)
 
@@ -21,6 +21,7 @@ class Robot(Obstacle):
         # Initialize dynamic properties
         self.Vmax = 5
         self.accel = 5
+        self.index = index
 
     # Calculate an orca cycle given a list containing Obstacles and a timestep orca_update_cycle
     # Robot should set its Vcur to this calculate velocity vector.
@@ -130,6 +131,8 @@ class Robot(Obstacle):
         return self.Vcur
 
     def set_current_velocity(self, v_cur):
+        if v_cur.shape[0] < 3:
+            raise RuntimeError
         self.Vcur = v_cur
 
     # Get function for its reference velocity
@@ -138,7 +141,7 @@ class Robot(Obstacle):
 
     # Setter for the reference velocity. 
     def set_reference_velocity(self, v_ref: np.ndarray):
-        self.Vref = v_ref # (Vref_x, Vref_y)
+        self.Vref = v_ref # (Vref_x, Vref_y, Vref_z) (z is zero)
 
     # Get function for its bounding radius
     def get_radius(self) -> int:
@@ -153,7 +156,7 @@ class Robot(Obstacle):
         if not isinstance(new_position, np.ndarray):
             raise TypeError
         
-        self.pos = new_position # (x, y)
+        self.pos = new_position # (x, y, z) (z is zero)
 
     # Set function for the Robots goal
     def set_goal(self, goal: np.ndarray):
@@ -163,5 +166,5 @@ class Robot(Obstacle):
         self.goal = goal
 
     def toString(self) -> str:
-        str = "(Robot p={pos}, r={rad}, v={vel})".format(pos=self.pos, rad=self.r, vel=self.Vcur)
+        str = "(Robot {ind} p={pos}, r={rad}, v={vel})".format(ind=self.index, pos=self.pos, rad=self.radius, vel=self.Vcur)
         return str

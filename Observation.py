@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from Obstacle import Obstacle
 from Robot import Robot
 from Static import Static
 import numpy as np
-from IPython.display import display, clear_output
+# from IPython.display import display, clear_output
 
 
 class Observation:
@@ -13,20 +13,25 @@ class Observation:
         self.orca_update_cycle: float = orca_update_cycle
         self.simulation_cycle: float = simulation_cycle
 
-        self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2)  # note we must use plt.subplots, not plt.subplot
-        self.fig3, self.ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
+        # TODO This breaks gym
+        # self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2)  # note we must use plt.subplots, not plt.subplot
+        # self.fig3, self.ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
+
+
+    def get_obstacles(self):
+        return self.obstacles
 
     # Add a robot to the obstacles
     # Python has no overloading therefore the indexation
-    def add_robot1(self, position: np.ndarray, radius: float) -> list:
-        robot = Robot(position, radius)
+    def add_robot1(self, position: np.ndarray, radius: float, index: int) -> list:
+        robot = Robot(position, radius, index)
         self.obstacles.append(robot)
         return self.obstacles
 
     # Add a robot to the obstacles
     # Python has no overloading therefore the indexation
-    def add_robot2(self, position: np.ndarray, radius: float, vel_ref: np.ndarray) -> list:
-        robot = Robot(position, radius)
+    def add_robot2(self, position: np.ndarray, radius: float, vel_ref: np.ndarray, index: int) -> list:
+        robot = Robot(position, radius, index)
         robot.set_reference_velocity(vel_ref)
         robot.set_current_velocity(vel_ref)
         self.obstacles.append(robot)
@@ -34,8 +39,8 @@ class Observation:
 
     # Add a robot to the obstacles
     # Python has no overloading therefore the indexation
-    def add_robot3(self, position: np.ndarray, radius: float, vel_ref: np.ndarray, goal: np.ndarray) -> list:
-        robot = Robot(position, radius)
+    def add_robot3(self, position: np.ndarray, radius: float, vel_ref: np.ndarray, goal: np.ndarray, index: int) -> list:
+        robot = Robot(position, radius, index)
         robot.set_reference_velocity(vel_ref)
         robot.set_current_velocity(vel_ref)
         robot.set_goal(goal)
@@ -120,36 +125,37 @@ class Observation:
 
 # Basic 2D simulation. Je kan de simulatie update cycle en orca update cycle aanpassen. Ook kunnen er meer robots toegevoegd of aangepast worden
 # Zie de comment onderaan de loop voor het veranderen van het simulatie gedrag
-if __name__ == "__main__":
-    simulation_cycle = 0.01
-    orca_update_cycle = 1.0 # Verander deze waarde naar 1.0 voor een betere simulatie
-    ob = Observation(orca_update_cycle, simulation_cycle)
-
-    # Add robots to the simulations
-    speed = 5.0
-    radius = 1
-
-    ob.add_robot3(np.array([5, 5]), radius, np.array([-speed, -speed]), np.array([-5, -5]))
-    ob.add_robot3(np.array([-5, -5]), radius, np.array([speed, speed]), np.array([5, 5]))
-    ob.add_robot3(np.array([-5, 5]), radius, np.array([speed, -speed]), np.array([5, -5]))
-    ob.add_robot3(np.array([5, -5]), radius, np.array([-speed, speed]), np.array([-5, 5]))
-
-    for t in np.arange(0, 5, simulation_cycle):
-        new_positions = []
-
-        for i in range(len(ob.obstacles)):
-            robot = ob.obstacles[i]
-            new_positions.append(robot.get_position() + robot.get_current_velocity() * simulation_cycle)
-
-        ob.update_positions(new_positions)
-
-        if t % orca_update_cycle == 0:
-            new_velocities = ob.orca_cycle()
-            ob.update_velocities(new_velocities)
-            ob.update_orca_plot()
-
-        ob.update_position_plot()
-
-        plt.show(block=False)  # TODO: als False veranderd loopt de simulatie door!!!
-        clear_output(wait=True)
-        plt.pause(0.001)
+# if __name__ == "__main__":
+#     simulation_cycle = 0.01
+#     orca_update_cycle = 1.0 # Verander deze waarde naar 1.0 voor een betere simulatie
+#     ob = Observation(orca_update_cycle, simulation_cycle)
+#
+#     # Add robots to the simulations
+#     speed = 5.0
+#     radius = 1
+#
+#     ob.add_robot3(np.array([5, 5, 0]), radius, np.array([-speed, -speed, 0]), np.array([-5, -5, 0]), 0)
+#     ob.add_robot3(np.array([-5, -5, 0]), radius, np.array([speed, speed, 0]), np.array([5, 5, 0]), 1)
+#     ob.add_robot3(np.array([-5, 5, 0]), radius, np.array([speed, -speed, 0]), np.array([5, -5, 0]), 2)
+#     ob.add_robot3(np.array([5, -5, 0]), radius, np.array([-speed, speed, 0]), np.array([-5, 5, 0]), 3)
+#
+#     for t in np.arange(0, 5, simulation_cycle):
+#         new_positions = []
+#
+#         for i in range(len(ob.obstacles)):
+#             robot = ob.obstacles[i]
+#             print(robot.toString())
+#             new_positions.append(robot.get_position() + robot.get_current_velocity() * simulation_cycle)
+#
+#         ob.update_positions(new_positions)
+#
+#         if t % orca_update_cycle == 0:
+#             new_velocities = ob.orca_cycle()
+#             ob.update_velocities(new_velocities)
+#             ob.update_orca_plot()
+#
+#         ob.update_position_plot()
+#
+#         plt.show(block=False)  # TODO: als False veranderd loopt de simulatie door!!!
+#         clear_output(wait=True)
+#         plt.pause(0.001)
