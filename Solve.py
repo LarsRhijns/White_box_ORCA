@@ -45,7 +45,10 @@ class Solve:
             p1, p2 = nearest_points(poly, point)
             solution = np.array(list(list(p1.coords)[0]) + [0])
 
-            return solution
+        else:
+            solution = np.array([0, 0, 0])
+
+        return solution
 
     def feasible_point(self, A, b):
         # finds the center of the largest sphere fitting in the convex hull
