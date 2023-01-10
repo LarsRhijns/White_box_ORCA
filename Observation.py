@@ -39,8 +39,8 @@ class Observation:
     # Python has no overloading therefore the indexation
     def add_robot3(self, position: np.ndarray, radius: float, vel_ref: np.ndarray, goal: np.ndarray, index: int) -> list:
         robot = Robot(position, radius, index)
-        robot.set_reference_velocity(vel_ref)
-        robot.set_current_velocity(vel_ref)
+        # robot.set_reference_velocity(vel_ref)
+        # robot.set_current_velocity(vel_ref)
         robot.set_goal(goal)
         self.obstacles.append(robot)
         return self.obstacles

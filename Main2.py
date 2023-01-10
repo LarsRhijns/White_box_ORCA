@@ -12,17 +12,18 @@ import pybullet as pb
 from Robot import Robot
 import time
 
-orca_update_cycle = 2
-
+orca_update_cycle = 1.0
 simulation_cycle = 0.01
+obser = Observation(orca_update_cycle, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
 robot_amount = 5
 circle_radius = 2
-velocity = 0.5
+velocity = 0.0
 total_time = 20
 
 obstacle_radius = 0.5
 obstacle_run = False
+obstacle_location = [0.0, 0.0, 0.0]
 plot_velocities = False
 steps = int(total_time // simulation_cycle)
 
@@ -43,7 +44,7 @@ colors = [[1.0, 0.0, 0.0],  # Red
 
 obst1Dict = {
     "type": "sphere",
-    "geometry": {"position": [0, 0.0, 0.0], "radius": obstacle_radius},
+    "geometry": {"position": obstacle_location, "radius": obstacle_radius},
 }
 
 
@@ -142,7 +143,6 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     action = np.zeros(n)
     # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
 
-    obser = Observation(orca_update_cycle, simulation_cycle)
     count = 0
     for i in range(robot_amount):
         angle = ((2 * np.pi) / robot_amount) * i
@@ -158,7 +158,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     ob = env.reset(pos=initial_positions)
 
     if obstacle_run:
-        obser.add_static(np.array([0, 0, 0]), obstacle_radius)
+        obser.add_static(np.array(obstacle_location), obstacle_radius)
         env.add_obstacle(SphereObstacle(name="simpleSphere", content_dict=obst1Dict))
 
     print(f"Initial observation : {ob}")
@@ -201,7 +201,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
 
 
 if __name__ == "__main__":
-    history, obser = run_point_robot(n_steps=steps, render=True)
+    hist, obser = run_point_robot(n_steps=steps, render=True, goal=False, obstacles=obstacle_run)
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)  # note we must use plt.subplots, not plt.subplot
     # fig3, ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot

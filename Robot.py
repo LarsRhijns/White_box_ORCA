@@ -55,22 +55,23 @@ class Robot(Obstacle):
         vector_to_goal = self.goal - self.pos
         norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
 
-        # Euclidean distance
-        distance_to_goal = np.linalg.norm(vector_to_goal)
-        magnitude_Vcur = np.linalg.norm(self.Vcur)
-        accel_distance = (0.5 * magnitude_Vcur ** 2 / self.accel)
 
-        # Decelerating
-        if distance_to_goal <= accel_distance:
-            self.set_reference_velocity(norm_vector_to_goal * (magnitude_Vcur - self.accel * dt))
+        # # Euclidean distance
+        # distance_to_goal = np.linalg.norm(vector_to_goal)
+        # magnitude_Vcur = np.linalg.norm(self.Vcur)
+        # accel_distance = (0.5 * magnitude_Vcur ** 2 / self.accel)
+        #
+        # # Decelerating
+        # if distance_to_goal <= accel_distance:
+        #     self.set_reference_velocity(norm_vector_to_goal * (magnitude_Vcur - self.accel * dt))
+        # # Accelerating
+        # elif distance_to_goal > accel_distance:
+        #     self.set_reference_velocity(norm_vector_to_goal * (magnitude_Vcur + self.accel * dt))
+        # # Maximum speed
+        # else:
+        #     self.set_reference_velocity(norm_vector_to_goal * self.Vmax)
 
-        # Accelerating
-        elif distance_to_goal > accel_distance:
-            self.set_reference_velocity(norm_vector_to_goal * (magnitude_Vcur + self.accel * dt))
-
-        # Maximum speed
-        else:
-            self.set_reference_velocity(norm_vector_to_goal * self.Vmax)
+        self.set_reference_velocity(norm_vector_to_goal * 1.0)
 
     # Plot the velocity obstacle shape and constraints
     def plot_orca_info(self):
