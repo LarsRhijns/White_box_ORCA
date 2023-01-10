@@ -1,16 +1,25 @@
 import gym
+import sys
+sys.path.append("gym_envs_urdfs")
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
+from MotionPlanningEnv.sphereObstacle import SphereObstacle
 import numpy as np
 from Observation import Observation
 
-orca_update_cycle = 1
+orca_update_cycle = 2
 simulation_cycle = 0.01
 radius = 0.2 # As defined in pointRobot.urdf
-robot_amount = 4
+robot_amount = 5
 circle_radius = 2
 velocity = 0.5
 total_time = 20
 steps = int(total_time // simulation_cycle)
+obstacle_radius = 0.5
+
+obst1Dict = {
+        "type": "sphere",
+        "geometry": {"position": [0, 0.0, 0.0], "radius": obstacle_radius},
+    }
 
 
 def fetch_positions(last_observation):
@@ -35,22 +44,24 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
 
     obser = Observation(orca_update_cycle, simulation_cycle)
-    obser.add_robot3(np.array([2, 2, 0]), radius, np.array([-velocity, -velocity, 0]), np.array([-2, -2, 0]), 0)
-    obser.add_robot3(np.array([-2, -2, 0]), radius, np.array([velocity, velocity, 0]), np.array([2, 2, 0]), 1)
-    obser.add_robot3(np.array([-2, 2, 0]), radius, np.array([velocity, -velocity, 0]), np.array([2, -2, 0]), 2)
-    obser.add_robot3(np.array([2, -2, 0]), radius, np.array([-velocity, velocity, 0]), np.array([-2, 2, 0]), 3)
-
     count = 0
-    obstacle_list = obser.get_obstacles()
     for i in range(robot_amount):
-        robot = obstacle_list[i]
-        position = robot.get_position()
+        angle = ((2 * np.pi) / robot_amount) * i
+        position = np.array([circle_radius * np.cos(angle), circle_radius * np.sin(angle), 0])
         initial_positions[i, :] = position
 
-        action[count: count + ns_per_robot[i]] = robot.get_reference_velocity()
+        referece_velocity = -np.array([velocity * np.cos(angle), velocity * np.sin(angle), 0])
+        action[count: count + ns_per_robot[i]] = referece_velocity
         count += ns_per_robot[i]
 
+        obser.add_robot3(position, radius, referece_velocity, -position, i)
+
+    # obser.add_static(np.array([0, 0, 0]), obstacle_radius)
+
     ob = env.reset(pos=initial_positions)
+
+    # env.add_obstacle(SphereObstacle(name="simpleSphere", content_dict=obst1Dict))
+
     print(f"Initial observation : {ob}")
 
     history = [ob]

@@ -11,7 +11,7 @@ class VelocityObstacle:
         self.dt = dt
         self.rel_pos = robot.pos - reference.pos
         self.rel_vel = reference.Vcur - robot.Vcur
-        self.radius = (reference.radius + robot.radius + 0.2) / self.dt
+        self.radius = (reference.radius + robot.radius + 0.5) / self.dt
         self.constraint = None
         self.polygon_points = None
         self.closest_point = np.NaN
