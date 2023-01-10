@@ -15,7 +15,7 @@ class Robot(Obstacle):
         self.goal: np.ndarray = np.NaN
 
         # Initialize plot information
-        self.lines: list = [] # Will probably have to be a numpy array
+        self.lines: list = []  # Will probably have to be a numpy array
         self.velocity_obstacles: list = []
 
         # Initialize dynamic properties
@@ -73,7 +73,10 @@ class Robot(Obstacle):
             self.set_reference_velocity(norm_vector_to_goal * self.Vmax)
 
     # Plot the velocity obstacle shape and constraints
-    def plot_orca_info(self, ax1, ax2):
+    def plot_orca_info(self):
+        vo_plot = {}
+        constrain_plot = {}
+
         for velocity_obstacle in self.velocity_obstacles:
             if isinstance(velocity_obstacle.constraint, np.ndarray):
                 # Get the shapes to draw from the velocity obstacle
@@ -81,33 +84,42 @@ class Robot(Obstacle):
 
                 # Plot the VO
                 vo_polygon.set(color="red", alpha=0.5)
-                ax1.add_patch(vo_polygon)
-                ax1.plot(velocity_obstacle.rel_vel[0], velocity_obstacle.rel_vel[1], marker="o", color="black")
-                # ax1.plot(velocity_obstacle.rel_pos[0], velocity_obstacle.rel_pos[1], marker="o", color="yellow")
-                ax1.plot(border_point[0], border_point[1], marker="o", color="blue")
+                # ax1.add_patch(vo_polygon)
+                vo_plot["VO_polygon"] = vo_polygon
+
+                # ax1.plot(velocity_obstacle.rel_vel[0], velocity_obstacle.rel_vel[1], marker="o", color="black")
+                vo_plot["relative_vel"] = velocity_obstacle.rel_vel
+
+                # ax1.plot(border_point[0], border_point[1], marker="o", color="blue")
+                vo_plot["border_point"] = border_point
 
                 # Plot the constraint
                 constrain.set(color="green", alpha=0.5)
-                ax2.add_patch(constrain)
+                # ax2.add_patch(constrain)
+                constrain_plot["constrain"] = constrain
 
                 if line[1] == None:
-                    ax2.axvline(line[0], color='black')
+                    # ax2.axvline(line[0], color='black')
+                    constrain_plot["line"] = line[0]
                 else:
-                    ax2.axline((0, line[1]), slope=line[0], color='black')
+                    # ax2.axline((0, line[1]), slope=line[0], color='black')
+                    constrain_plot["line"] = np.array([line[0], line[1]])
 
-        ax2.plot(self.Vcur[0], self.Vcur[1], marker="o", color="yellow")
-        ax2.arrow(0, 0, self.Vref[0], self.Vref[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black")
+        # ax2.plot(self.Vcur[0], self.Vcur[1], marker="o", color="yellow")
+        constrain_plot["Vcur"] = self.Vcur
+        # ax2.arrow(0, 0, self.Vref[0], self.Vref[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black")
+        constrain_plot["Vref"] = self.Vref
 
-        ax1.grid()
-        ax2.grid()
+        # ax1.grid()
+        # ax2.grid()
+        #
+        # ax1.set_box_aspect(1)
+        # ax2.set_box_aspect(1)
+        #
+        # plt.setp(ax1, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle")
+        # plt.setp(ax2, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
 
-        ax1.set_box_aspect(1)
-        ax2.set_box_aspect(1)
-
-        plt.setp(ax1, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle")
-        plt.setp(ax2, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
-
-        return ax1, ax2
+        return vo_plot, constrain_plot
 
     def plot_position_info(self, ax, color):
         # Plot top view of all robots
@@ -158,7 +170,7 @@ class Robot(Obstacle):
 
     # Setter for the reference velocity. 
     def set_reference_velocity(self, v_ref: np.ndarray):
-        self.Vref = v_ref # (Vref_x, Vref_y, Vref_z) (z is zero)
+        self.Vref = v_ref  # (Vref_x, Vref_y, Vref_z) (z is zero)
 
     # Get function for its bounding radius
     def get_radius(self) -> int:
@@ -172,8 +184,8 @@ class Robot(Obstacle):
     def set_position(self, new_position: np.ndarray):
         if not isinstance(new_position, np.ndarray):
             raise TypeError
-        
-        self.pos = new_position # (x, y, z) (z is zero)
+
+        self.pos = new_position  # (x, y, z) (z is zero)
 
     # Set function for the Robots goal
     def set_goal(self, goal: np.ndarray):

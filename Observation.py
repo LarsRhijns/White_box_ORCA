@@ -16,6 +16,8 @@ class Observation:
         # self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2)  # note we must use plt.subplots, not plt.subplot
         # self.fig3, self.ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
 
+        self.vo_plots = []
+        self.constraint_plots = []
 
     def get_obstacles(self):
         return self.obstacles
@@ -101,11 +103,13 @@ class Observation:
         return self.obstacles
 
     def update_orca_plot(self):
-        self.ax1.cla()
-        self.ax2.cla()
+        # self.ax1.cla()
+        # self.ax2.cla()
 
         if isinstance(self.obstacles[self.plot_index], Robot):
-            self.ax1, self.ax2 = self.obstacles[self.plot_index].plot_orca_info(self.ax1, self.ax2)
+            vo_plot, constrain_plot = self.obstacles[self.plot_index].plot_orca_info()
+            self.vo_plots.append(vo_plot)
+            self.constraint_plots.append(constrain_plot)
         else:
             raise RuntimeError("The selected plot index is not a robot")
 

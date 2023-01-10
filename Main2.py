@@ -1,5 +1,8 @@
 import gym
 import sys
+import matplotlib.pyplot as plt
+
+sys.path.append("gym_envs_urdfs")
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 from MotionPlanningEnv.sphereObstacle import SphereObstacle
 import numpy as np
@@ -7,15 +10,15 @@ from Observation import Observation
 import pybullet as pb
 from Robot import Robot
 import time
-sys.path.append("gym_envs_urdfs")
 
 orca_update_cycle = 1
 simulation_cycle = 0.01
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 5
-circle_radius = 2
-velocity = 1
-total_time = 200
+robot_amount = 9
+circle_radius = 3
+velocity = 0.5
+total_time = 20
+
 steps = int(total_time // simulation_cycle)
 obstacle_radius = 0.5
 obstacle_run = False
@@ -36,11 +39,10 @@ colors = [[1.0, 0.0, 0.0],  # Red
           [0.0, 0.5, 0.5],  # Darker cyan
           ]
 
-
 obst1Dict = {
-        "type": "sphere",
-        "geometry": {"position": [0, 0.0, 0.0], "radius": obstacle_radius},
-    }
+    "type": "sphere",
+    "geometry": {"position": [0, 0.0, 0.0], "radius": obstacle_radius},
+}
 
 
 def fetch_positions(last_observation):
@@ -124,7 +126,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
             new_velocities = obser.orca_cycle()
             print(new_velocities)
             obser.update_velocities(new_velocities)
-            # obser.update_orca_plot()
+            obser.update_orca_plot()
 
         if plot_velocities:
             gym_plot_velocities(new_positions, new_velocities)
@@ -140,6 +142,42 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         ob, _, _, _ = env.step(action)
         history.append(ob)
     env.close()
+
+    vo_plot = obser.vo_plots[-1]
+    constrain_plot = obser.constraint_plots[-1]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2)  # note we must use plt.subplots, not plt.subplot
+    # fig3, ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
+
+    ax1.add_patch(vo_plot["VO_polygon"])
+
+    ax1.plot(vo_plot["relative_vel"][0], vo_plot["relative_vel"][1], marker="o", color="black")
+
+    ax1.plot(vo_plot["border_point"][0], vo_plot["border_point"][1], marker="o", color="blue")
+
+    # Plot the constraint
+    ax2.add_patch(constrain_plot["constrain"])
+
+    if isinstance(constrain_plot["line"], np.ndarray):
+        ax2.axline((0, constrain_plot["line"][1]), slope=constrain_plot["line"][0], color='black')
+    else:
+        ax2.axvline(constrain_plot["line"], color='black')
+
+    ax2.plot(constrain_plot["Vcur"][0], constrain_plot["Vcur"][1], marker="o", color="yellow")
+
+    ax2.arrow(0, 0, constrain_plot["Vref"][0], constrain_plot["Vref"][1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black")
+
+    ax1.grid()
+    ax2.grid()
+
+    ax1.set_box_aspect(1)
+    ax2.set_box_aspect(1)
+
+    plt.setp(ax1, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle")
+    plt.setp(ax2, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
+
+    plt.show()
+
     return history
 
 
