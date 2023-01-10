@@ -22,6 +22,7 @@ class Robot(Obstacle):
         self.Vmax = 5
         self.accel = 5
         self.index = index
+        self.follow_orca = True
 
     # Calculate an orca cycle given a list containing Obstacles and a timestep orca_update_cycle
     # Robot should set its Vcur to this calculate velocity vector.
@@ -133,11 +134,27 @@ class Robot(Obstacle):
     def set_current_velocity(self, v_cur):
         if v_cur.shape[0] < 3:
             raise RuntimeError
+
+        # Determines if robot follows reference velocity or orca velocity
+        threshold = 0.001 # A threshold for checking if velocities the same
+        velocity_difference = abs(np.linalg.norm(v_cur - self.get_reference_velocity()))
+
+        if velocity_difference <= threshold:
+            self.follow_orca = False
+            # print("Following ref vel")
+        else:
+            self.follow_orca = True
+            # print("Following orca cycle")
+
+
         self.Vcur = v_cur
 
     # Get function for its reference velocity
     def get_reference_velocity(self) -> np.ndarray:
         return self.Vref
+
+    def get_goal(self):
+        return self.goal
 
     # Setter for the reference velocity. 
     def set_reference_velocity(self, v_ref: np.ndarray):
@@ -145,7 +162,7 @@ class Robot(Obstacle):
 
     # Get function for its bounding radius
     def get_radius(self) -> int:
-        return self.r
+        return self.radius
 
     # Get function for its current position
     def get_position(self) -> np.ndarray:
