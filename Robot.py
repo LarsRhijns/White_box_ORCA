@@ -74,10 +74,13 @@ class Robot(Obstacle):
 
     # Plot the velocity obstacle shape and constraints
     def plot_orca_info(self):
-        vo_plot = {}
-        constrain_plot = {}
+        vo_plot_list = []
+        constrain_plot_list = []
 
         for velocity_obstacle in self.velocity_obstacles:
+            vo_plot = {}
+            constrain_plot = {}
+
             if isinstance(velocity_obstacle.constraint, np.ndarray):
                 # Get the shapes to draw from the velocity obstacle
                 vo_polygon, line, constrain, border_point = velocity_obstacle.define_plotting_shapes()
@@ -105,10 +108,13 @@ class Robot(Obstacle):
                     # ax2.axline((0, line[1]), slope=line[0], color='black')
                     constrain_plot["line"] = np.array([line[0], line[1]])
 
-        # ax2.plot(self.Vcur[0], self.Vcur[1], marker="o", color="yellow")
-        constrain_plot["Vcur"] = self.Vcur
-        # ax2.arrow(0, 0, self.Vref[0], self.Vref[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black")
-        constrain_plot["Vref"] = self.Vref
+            # ax2.plot(self.Vcur[0], self.Vcur[1], marker="o", color="yellow")
+            constrain_plot["Vcur"] = self.Vcur
+            # ax2.arrow(0, 0, self.Vref[0], self.Vref[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black")
+            constrain_plot["Vref"] = self.Vref
+
+            vo_plot_list.append(vo_plot)
+            constrain_plot_list.append(constrain_plot)
 
         # ax1.grid()
         # ax2.grid()
@@ -119,24 +125,30 @@ class Robot(Obstacle):
         # plt.setp(ax1, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle")
         # plt.setp(ax2, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
 
-        return vo_plot, constrain_plot
+        return vo_plot_list, constrain_plot_list
 
-    def plot_position_info(self, ax, color):
+    def plot_position_info(self, color):
         # Plot top view of all robots
+        plot_dic = {}
         circle = plt.Circle((self.pos[0], self.pos[1]), self.radius)
         circle.set(color=color, alpha=0.5)
-        ax.add_patch(circle)
+        # ax.add_patch(circle)
+        plot_dic["position"] = self.pos
+        plot_dic["radius"] = self.radius
 
-        ax.arrow(self.pos[0], self.pos[1], self.Vcur[0], self.Vcur[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="green", ec="green", label="V_cur")
-        ax.arrow(self.pos[0], self.pos[1], self.Vref[0], self.Vref[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black", label="V_pref")
+        # ax.arrow(self.pos[0], self.pos[1], self.Vcur[0], self.Vcur[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="green", ec="green", label="V_cur")
+        # ax.arrow(self.pos[0], self.pos[1], self.Vref[0], self.Vref[1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black", label="V_pref")
+        plot_dic["Vref"] = self.Vref
+        plot_dic["Vcur"] = self.Vcur
+        plot_dic["color"] = color
 
-        ax.grid()
-        ax.legend()
+        # ax.grid()
+        # ax.legend()
+        #
+        # ax.set_box_aspect(1)
+        # plt.setp(ax, xlim=[-8, 8], ylim=[-8, 8], xlabel="x", ylabel="y", title="Robot positions")
 
-        ax.set_box_aspect(1)
-        plt.setp(ax, xlim=[-8, 8], ylim=[-8, 8], xlabel="x", ylabel="y", title="Robot positions")
-
-        return ax
+        return plot_dic
 
     # Get function for its current velocity
     # No setter since only the Robot itself will calculate its Vcur. External sources can only set its Vref.

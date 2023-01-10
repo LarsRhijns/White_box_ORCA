@@ -12,12 +12,9 @@ class Observation:
         self.orca_update_cycle: float = orca_update_cycle
         self.simulation_cycle: float = simulation_cycle
 
-        # TODO This breaks gym
-        # self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2)  # note we must use plt.subplots, not plt.subplot
-        # self.fig3, self.ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
-
         self.vo_plots = []
         self.constraint_plots = []
+        self.position_plots = []
 
     def get_obstacles(self):
         return self.obstacles
@@ -116,11 +113,13 @@ class Observation:
         # plt.show(block=True)
 
     def update_position_plot(self):
-        self.ax3.cla()
+        plot_per_robot = []
         for i in range(len(self.obstacles)):
             if isinstance(self.obstacles[i], Robot):
                 color = "gray"
                 if i == self.plot_index:
                     color = "blue"
 
-                self.ax3 = self.obstacles[i].plot_position_info(self.ax3, color)
+                plot_per_robot.append(self.obstacles[i].plot_position_info(color))
+
+        self.position_plots.append(plot_per_robot)

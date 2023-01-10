@@ -1,6 +1,7 @@
 import gym
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
 
 sys.path.append("gym_envs_urdfs")
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
@@ -11,18 +12,19 @@ import pybullet as pb
 from Robot import Robot
 import time
 
-orca_update_cycle = 1
+orca_update_cycle = 2
+
 simulation_cycle = 0.01
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 9
-circle_radius = 3
+robot_amount = 5
+circle_radius = 2
 velocity = 0.5
 total_time = 20
 
-steps = int(total_time // simulation_cycle)
 obstacle_radius = 0.5
 obstacle_run = False
 plot_velocities = False
+steps = int(total_time // simulation_cycle)
 
 colors = [[1.0, 0.0, 0.0],  # Red
           [0.0, 1.0, 0.0],  # Green
@@ -73,6 +75,58 @@ def check_for_finished(obstacles):
     return all_finished
 
 
+def update_plots(val):
+    index = index_slider.val
+
+    ax1.cla()
+    ax2.cla()
+    ax3.cla()
+
+    vo_cycle = obser.vo_plots[index]
+    constrain_cycle = obser.constraint_plots[index]
+    position_cycle = obser.position_plots[index]
+
+    for vo_plot in vo_cycle:
+        if len(vo_plot) != 0:
+            ax1.add_patch(vo_plot["VO_polygon"])
+            ax1.plot(vo_plot["relative_vel"][0], vo_plot["relative_vel"][1], marker="o", color="black")
+            ax1.plot(vo_plot["border_point"][0], vo_plot["border_point"][1], marker="o", color="blue")
+
+    for constrain_plot in constrain_cycle:
+        if len(constrain_plot) != 0:
+            if "constrain" in constrain_plot:
+                ax2.add_patch(constrain_plot["constrain"])
+
+                if isinstance(constrain_plot["line"], np.ndarray):
+                    ax2.axline((0, constrain_plot["line"][1]), slope=constrain_plot["line"][0], color='black')
+                else:
+                    ax2.axvline(constrain_plot["line"], color='black')
+
+            ax2.plot(constrain_plot["Vcur"][0], constrain_plot["Vcur"][1], marker="o", color="yellow")
+            ax2.arrow(0, 0, constrain_plot["Vref"][0], constrain_plot["Vref"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="black", ec="black")
+
+    for position_plot in position_cycle:
+        circle = plt.Circle((position_plot["position"][0], position_plot["position"][1]), position_plot["radius"])
+        circle.set(color=position_plot["color"], alpha=0.5)
+        ax3.add_patch(circle)
+
+        ax3.arrow(position_plot["position"][0], position_plot["position"][1], position_plot["Vcur"][0], position_plot["Vcur"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="green", ec="green", label="V_cur")
+        ax3.arrow(position_plot["position"][0], position_plot["position"][1], position_plot["Vref"][0], position_plot["Vref"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="black", ec="black", label="V_pref")
+
+    ax1.grid()
+    ax2.grid()
+    ax3.grid()
+
+    ax1.set_box_aspect(1)
+    ax2.set_box_aspect(1)
+    ax3.set_box_aspect(1)
+
+    plt.setp(ax1, xlim=[-5, 5], ylim=[-5, 5], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle(s)")
+    plt.setp(ax2, xlim=[-2, 2], ylim=[-2, 2], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraint(s)")
+    size = circle_radius + radius * 2
+    plt.setp(ax3, xlim=[-size, size], ylim=[-size, size], xlabel="x", ylabel="y", title="Configuration space")
+
+
 def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     robots = []
     for i in range(robot_amount):
@@ -113,8 +167,8 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     new_velocities = None
     for step in range(n_steps):
         if check_for_finished(obser.get_obstacles()):
-            print("All robots reached the goal, closing in 10 seconds...")
-            time.sleep(10)
+            print("All robots reached the goal, closing in 2 seconds...")
+            time.sleep(2)
             break
 
         current_time = step * simulation_cycle
@@ -124,9 +178,9 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
 
         if current_time % orca_update_cycle == 0:
             new_velocities = obser.orca_cycle()
-            print(new_velocities)
             obser.update_velocities(new_velocities)
             obser.update_orca_plot()
+            obser.update_position_plot()
 
         if plot_velocities:
             gym_plot_velocities(new_positions, new_velocities)
@@ -143,43 +197,24 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         history.append(ob)
     env.close()
 
-    vo_plot = obser.vo_plots[-1]
-    constrain_plot = obser.constraint_plots[-1]
-
-    fig, (ax1, ax2) = plt.subplots(1, 2)  # note we must use plt.subplots, not plt.subplot
-    # fig3, ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
-
-    ax1.add_patch(vo_plot["VO_polygon"])
-
-    ax1.plot(vo_plot["relative_vel"][0], vo_plot["relative_vel"][1], marker="o", color="black")
-
-    ax1.plot(vo_plot["border_point"][0], vo_plot["border_point"][1], marker="o", color="blue")
-
-    # Plot the constraint
-    ax2.add_patch(constrain_plot["constrain"])
-
-    if isinstance(constrain_plot["line"], np.ndarray):
-        ax2.axline((0, constrain_plot["line"][1]), slope=constrain_plot["line"][0], color='black')
-    else:
-        ax2.axvline(constrain_plot["line"], color='black')
-
-    ax2.plot(constrain_plot["Vcur"][0], constrain_plot["Vcur"][1], marker="o", color="yellow")
-
-    ax2.arrow(0, 0, constrain_plot["Vref"][0], constrain_plot["Vref"][1], length_includes_head=True, head_width=0.5, head_length=0.5, fc="black", ec="black")
-
-    ax1.grid()
-    ax2.grid()
-
-    ax1.set_box_aspect(1)
-    ax2.set_box_aspect(1)
-
-    plt.setp(ax1, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity obstacle")
-    plt.setp(ax2, xlim=[-10, 10], ylim=[-10, 10], xlabel="Velocity x", ylabel="Velocity y", title="Velocity constraints")
-
-    plt.show()
-
-    return history
+    return history, obser
 
 
 if __name__ == "__main__":
-    run_point_robot(n_steps=steps, render=True)
+    history, obser = run_point_robot(n_steps=steps, render=True)
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)  # note we must use plt.subplots, not plt.subplot
+    # fig3, ax3 = plt.subplots(1, 1)  # note we must use plt.subplots, not plt.subplot
+
+    slider_axis = fig.add_axes([0.25, 0.1, 0.65, 0.03])
+    index_slider = Slider(
+        ax=slider_axis,
+        label='Cycle index',
+        valmin=0,
+        valmax=len(obser.vo_plots) - 1,
+        valinit=0,
+        valstep=1
+    )
+    index_slider.on_changed(update_plots)
+
+    plt.show()

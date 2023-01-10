@@ -35,7 +35,7 @@ class VelocityObstacle:
 
         # Define velocity obstacle polygon
         angle_tangent_centre = np.arctan2((self.__intersection - circle_centre)[1], (self.__intersection - circle_centre)[0])
-        angles = np.arange(angle_tangent_centre, 2 * np.pi - angle_tangent_centre, step=np.pi / 180)
+        angles = np.arange(angle_tangent_centre, 2 * np.pi - angle_tangent_centre, step=(np.pi / 180) * 3)
         circle_points = np.array([np.cos(angles) * self.radius, np.sin(angles) * self.radius]).T + circle_centre
         self.polygon_points = np.vstack(([20, self.__tangent_rc * 20], circle_points, [20, -self.__tangent_rc * 20], [20, self.__tangent_rc * 20])).T
         self.polygon_points = self.rotation(self.polygon_points, self.__angle).T
@@ -69,14 +69,14 @@ class VelocityObstacle:
         if self.constraint[1] == None:  # Check if vertical line
             polygon_points.append(np.array([self.constraint[0], 30]))
             polygon_points.append(np.array([self.constraint[0], -30]))
-            polygon_points.append(np.array([self.constraint[0] + 0.5 * self.constraint[2], -30]))
-            polygon_points.append(np.array([self.constraint[0] + 0.5 * self.constraint[2], 30]))
+            polygon_points.append(np.array([self.constraint[0] + 0.1 * self.constraint[2], -30]))
+            polygon_points.append(np.array([self.constraint[0] + 0.1 * self.constraint[2], 30]))
 
         else:
             polygon_points.append(np.array([-30, -30 * self.constraint[0] + self.constraint[1]]))
             polygon_points.append(np.array([30, 30 * self.constraint[0] + self.constraint[1]]))
-            polygon_points.append(polygon_points[1] - np.array([0, 0.5 * self.constraint[-1]]))
-            polygon_points.append(polygon_points[0] - np.array([0, 0.5 * self.constraint[-1]]))
+            polygon_points.append(polygon_points[1] - np.array([0, 0.1 * self.constraint[-1]]))
+            polygon_points.append(polygon_points[0] - np.array([0, 0.1 * self.constraint[-1]]))
 
         constrain_polygon = patches.Polygon(polygon_points)
 
