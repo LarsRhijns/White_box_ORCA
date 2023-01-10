@@ -2,6 +2,7 @@ from matplotlib import patches
 import numpy as np
 from shapely.geometry import Polygon, Point
 from shapely.ops import nearest_points
+from Static import Static
 
 
 class VelocityObstacle:
@@ -49,7 +50,10 @@ class VelocityObstacle:
             self.closest_point = np.array(list(point1.coords)[0])
             u = self.closest_point - self.rel_vel[:2]
 
-            constrain_point = self.reference.get_current_velocity()[:2] + 0.5 * u
+            if isinstance(self.robot, Static):
+                constrain_point = self.reference.get_current_velocity()[:2] + u
+            else:
+                constrain_point = self.reference.get_current_velocity()[:2] + (1 - self.reference.cooperation_factor) * u
 
             # Check if the solution is a vertical line, in other words a very high direction coaficient:
             if abs(u[1]) < 0.01:

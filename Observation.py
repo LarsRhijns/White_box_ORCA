@@ -21,27 +21,10 @@ class Observation:
 
     # Add a robot to the obstacles
     # Python has no overloading therefore the indexation
-    def add_robot1(self, position: np.ndarray, radius: float, index: int) -> list:
+    def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, cooperation_factor=0.5) -> list:
         robot = Robot(position, radius, index)
-        self.obstacles.append(robot)
-        return self.obstacles
-
-    # Add a robot to the obstacles
-    # Python has no overloading therefore the indexation
-    def add_robot2(self, position: np.ndarray, radius: float, vel_ref: np.ndarray, index: int) -> list:
-        robot = Robot(position, radius, index)
-        robot.set_reference_velocity(vel_ref)
-        robot.set_current_velocity(vel_ref)
-        self.obstacles.append(robot)
-        return self.obstacles
-
-    # Add a robot to the obstacles
-    # Python has no overloading therefore the indexation
-    def add_robot3(self, position: np.ndarray, radius: float, vel_ref: np.ndarray, goal: np.ndarray, index: int) -> list:
-        robot = Robot(position, radius, index)
-        # robot.set_reference_velocity(vel_ref)
-        # robot.set_current_velocity(vel_ref)
         robot.set_goal(goal)
+        robot.set_cooperation_factor(cooperation_factor)
         self.obstacles.append(robot)
         return self.obstacles
 
@@ -72,17 +55,6 @@ class Observation:
                 new_velocities.append(self.obstacles[i].orca_cycle(self.obstacles, self.orca_update_cycle))
 
         return new_velocities
-
-    # New_positions is a list with tuples with positions for each robot (and static obstacles??)
-    # TODO this now assumes that new_positions is always in the same order as robots in our list.
-    def update_all(self, new_positions: np.ndarray, new_velocities: np.ndarray) -> list:
-        for i in range(len(self.obstacles)):
-            if isinstance(self.obstacles[i], Robot):
-                self.obstacles[i].set_position(new_positions[i])
-                self.obstacles[i].update_velocity_reference(self.simulation_cycle)
-                self.obstacles[i].set_current_velocity(new_velocities[i])
-
-        return self.obstacles
 
     def update_positions(self, new_positions: list) -> list:
         for i in range(len(self.obstacles)):

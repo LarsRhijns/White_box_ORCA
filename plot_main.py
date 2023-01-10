@@ -7,17 +7,17 @@ from IPython.display import display, clear_output
 # Zie de comment onderaan de loop voor het veranderen van het simulatie gedrag
 if __name__ == "__main__":
     simulation_cycle = 0.01
-    orca_update_cycle = 0.5 # Verander deze waarde naar 1.0 voor een betere simulatie
+    orca_update_cycle = 0.5  # Verander deze waarde naar 1.0 voor een betere simulatie
     ob = Observation(orca_update_cycle, simulation_cycle)
 
     # Add robots to the simulations
     speed = 5
     radius = 0.2
 
-    ob.add_robot3(np.array([2, 2, 0]), radius, np.array([-speed, -speed, 0]), np.array([-2, -2, 0]), 0)
-    ob.add_robot3(np.array([-2, -2, 0]), radius, np.array([speed, speed, 0]), np.array([2, 2, 0]), 1)
-    ob.add_robot3(np.array([-2, 2, 0]), radius, np.array([speed, -speed, 0]), np.array([2, -2, 0]), 2)
-    ob.add_robot3(np.array([2, -2, 0]), radius, np.array([-speed, speed, 0]), np.array([-2, 2, 0]), 3)
+    ob.add_robot(np.array([2, 2, 0]), radius, np.array([-speed, -speed, 0]), np.array([-2, -2, 0]), 0)
+    ob.add_robot(np.array([-2, -2, 0]), radius, np.array([speed, speed, 0]), np.array([2, 2, 0]), 1)
+    ob.add_robot(np.array([-2, 2, 0]), radius, np.array([speed, -speed, 0]), np.array([2, -2, 0]), 2)
+    ob.add_robot(np.array([2, -2, 0]), radius, np.array([-speed, speed, 0]), np.array([-2, 2, 0]), 3)
 
     for t in np.arange(0, 5, simulation_cycle):
         new_positions = []

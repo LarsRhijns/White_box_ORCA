@@ -11,21 +11,24 @@ from Observation import Observation
 import pybullet as pb
 from Robot import Robot
 import time
+from Static import Static
 
-orca_update_cycle = 1.0
+orca_update_cycle = 2
 simulation_cycle = 0.01
 obser = Observation(orca_update_cycle, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 5
+robot_amount = 3
 circle_radius = 2
-velocity = 0.0
 total_time = 20
 
-obstacle_radius = 0.5
-obstacle_run = False
-obstacle_location = [0.0, 0.0, 0.0]
+obstacle_radius = 1
+obstacle_run = True
+obstacle_location = [0.0, 0.1, 0.0]
 plot_velocities = False
 steps = int(total_time // simulation_cycle)
+
+custom_cooperation_factor_index = 0
+cooperation_factor = 0.5
 
 colors = [[1.0, 0.0, 0.0],  # Red
           [0.0, 1.0, 0.0],  # Green
@@ -33,7 +36,6 @@ colors = [[1.0, 0.0, 0.0],  # Red
           [1.0, 1.0, 0.0],  # Yellow
           [0.0, 1.0, 1.0],  # Cyan
           [1.0, 0.0, 1.0],  # Pink
-          [0.0, 0.0, 0.0],  # Black
           [0.5, 0.0, 0.0],  # Dark red
           [0.0, 0.5, 0.0],  # Dark green
           [0.0, 0.0, 0.5],  # Dark blue
@@ -83,36 +85,53 @@ def update_plots(val):
     ax2.cla()
     ax3.cla()
 
-    vo_cycle = obser.vo_plots[index]
-    constrain_cycle = obser.constraint_plots[index]
-    position_cycle = obser.position_plots[index]
+    if index < len(obser.vo_plots):
+        vo_cycle = obser.vo_plots[index]
+        constrain_cycle = obser.constraint_plots[index]
+        position_cycle = obser.position_plots[index]
 
-    for vo_plot in vo_cycle:
-        if len(vo_plot) != 0:
-            ax1.add_patch(vo_plot["VO_polygon"])
-            ax1.plot(vo_plot["relative_vel"][0], vo_plot["relative_vel"][1], marker="o", color="black")
-            ax1.plot(vo_plot["border_point"][0], vo_plot["border_point"][1], marker="o", color="blue")
+        for vo_plot in vo_cycle:
+            if len(vo_plot) != 0:
+                ax1.add_patch(vo_plot["VO_polygon"])
+                ax1.plot(vo_plot["relative_vel"][0], vo_plot["relative_vel"][1], marker="o", color="black")
+                ax1.plot(vo_plot["border_point"][0], vo_plot["border_point"][1], marker="o", color="blue")
 
-    for constrain_plot in constrain_cycle:
-        if len(constrain_plot) != 0:
-            if "constrain" in constrain_plot:
-                ax2.add_patch(constrain_plot["constrain"])
+        for constrain_plot in constrain_cycle:
+            if len(constrain_plot) != 0:
+                if "constrain" in constrain_plot:
+                    ax2.add_patch(constrain_plot["constrain"])
 
-                if isinstance(constrain_plot["line"], np.ndarray):
-                    ax2.axline((0, constrain_plot["line"][1]), slope=constrain_plot["line"][0], color='black')
-                else:
-                    ax2.axvline(constrain_plot["line"], color='black')
+                    if isinstance(constrain_plot["line"], np.ndarray):
+                        ax2.axline((0, constrain_plot["line"][1]), slope=constrain_plot["line"][0], color='black')
+                    else:
+                        ax2.axvline(constrain_plot["line"], color='black')
 
-            ax2.plot(constrain_plot["Vcur"][0], constrain_plot["Vcur"][1], marker="o", color="yellow")
-            ax2.arrow(0, 0, constrain_plot["Vref"][0], constrain_plot["Vref"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="black", ec="black")
+                ax2.plot(constrain_plot["Vcur"][0], constrain_plot["Vcur"][1], marker="o", color="yellow")
+                ax2.arrow(0, 0, constrain_plot["Vref"][0], constrain_plot["Vref"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="black", ec="black")
 
-    for position_plot in position_cycle:
-        circle = plt.Circle((position_plot["position"][0], position_plot["position"][1]), position_plot["radius"])
-        circle.set(color=position_plot["color"], alpha=0.5)
-        ax3.add_patch(circle)
+        for position_plot in position_cycle:
+            circle = plt.Circle((position_plot["position"][0], position_plot["position"][1]), position_plot["radius"])
+            circle.set(color=position_plot["color"], alpha=0.5)
+            ax3.add_patch(circle)
 
-        ax3.arrow(position_plot["position"][0], position_plot["position"][1], position_plot["Vcur"][0], position_plot["Vcur"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="green", ec="green", label="V_cur")
-        ax3.arrow(position_plot["position"][0], position_plot["position"][1], position_plot["Vref"][0], position_plot["Vref"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="black", ec="black", label="V_pref")
+            ax3.arrow(position_plot["position"][0], position_plot["position"][1], position_plot["Vcur"][0], position_plot["Vcur"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="green", ec="green", label="V_cur")
+            ax3.arrow(position_plot["position"][0], position_plot["position"][1], position_plot["Vref"][0], position_plot["Vref"][1], length_includes_head=True, head_width=0.1, head_length=0.1, fc="black", ec="black", label="V_pref")
+
+    else:
+        for i, obstacle in enumerate(obser.obstacles):
+            if isinstance(obstacle, Robot):
+                for sate in obstacle.states:
+                    ax3.plot(sate[0], sate[1], marker="o", color=colors[i], markersize=1, alpha=0.5)
+
+                circle = plt.Circle((obstacle.states[-1][0], obstacle.states[-1][1]), obstacle.radius)
+                circle.set(color=colors[obstacle.index], alpha=0.5)
+                ax3.add_patch(circle)
+
+    for i, obstacle in enumerate(obser.obstacles):
+        if isinstance(obstacle, Static):
+            circle = plt.Circle((obstacle.pos[0], obstacle.pos[1]), obstacle.radius)
+            circle.set(color="black", alpha=1)
+            ax3.add_patch(circle)
 
     ax1.grid()
     ax2.grid()
@@ -141,7 +160,6 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     ns_per_robot = env.ns_per_robot()  # DoF per robot
     initial_positions = np.zeros((len(robots), ns_per_robot[0]))
     action = np.zeros(n)
-    # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
 
     count = 0
     for i in range(robot_amount):
@@ -149,11 +167,14 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         position = np.array([circle_radius * np.cos(angle), circle_radius * np.sin(angle), 0])
         initial_positions[i, :] = position
 
-        referece_velocity = -np.array([velocity * np.cos(angle), velocity * np.sin(angle), 0])
+        referece_velocity = np.zeros(3)
         action[count: count + ns_per_robot[i]] = referece_velocity
         count += ns_per_robot[i]
 
-        obser.add_robot3(position, radius, referece_velocity, -position, i)
+        if i == custom_cooperation_factor_index:
+            obser.add_robot(position, radius, -position, i, cooperation_factor)
+        else:
+            obser.add_robot(position, radius, -position, i)
 
     ob = env.reset(pos=initial_positions)
 
@@ -161,6 +182,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         obser.add_static(np.array(obstacle_location), obstacle_radius)
         env.add_obstacle(SphereObstacle(name="simpleSphere", content_dict=obst1Dict))
 
+    print(len(obser.obstacles), "lengte")
     print(f"Initial observation : {ob}")
 
     history = [ob]
@@ -211,7 +233,7 @@ if __name__ == "__main__":
         ax=slider_axis,
         label='Cycle index',
         valmin=0,
-        valmax=len(obser.vo_plots) - 1,
+        valmax=len(obser.vo_plots),
         valinit=0,
         valstep=1
     )

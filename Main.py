@@ -1,5 +1,6 @@
 import gym
 import sys
+
 sys.path.append("gym_envs_urdfs")
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 import numpy as np
@@ -9,7 +10,8 @@ robot_amount = None
 radius = None
 velocity = None
 simulation_cycle = None
-orca_update_cycle = None # Verander deze waarde naar 1.0 voor een betere simulatie
+orca_update_cycle = None  # Verander deze waarde naar 1.0 voor een betere simulatie
+
 
 def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     robots = []
@@ -25,10 +27,10 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])
 
     ob = Observation(orca_update_cycle, simulation_cycle)
-    ob.add_robot3(np.array([5, 5]), radius, np.array([-velocity, -velocity]), np.array([-5, -5]))
-    ob.add_robot3(np.array([-5, -5]), radius, np.array([velocity, velocity]), np.array([5, 5]))
-    ob.add_robot3(np.array([-5, 5]), radius, np.array([velocity, -velocity]), np.array([5, -5]))
-    ob.add_robot3(np.array([5, -5]), radius, np.array([-velocity, velocity]), np.array([-5, 5]))
+    ob.add_robot(np.array([5, 5]), radius, np.array([-velocity, -velocity]), np.array([-5, -5]), )
+    ob.add_robot(np.array([-5, -5]), radius, np.array([velocity, velocity]), np.array([5, 5]), )
+    ob.add_robot(np.array([-5, 5]), radius, np.array([velocity, -velocity]), np.array([5, -5]), )
+    ob.add_robot(np.array([5, -5]), radius, np.array([-velocity, velocity]), np.array([-5, 5]), )
 
     count = 0
     for i, robot in enumerate(ob.obstacles):
@@ -58,6 +60,5 @@ if __name__ == "__main__":
     orca_update_cycle = 1.0  # Verander deze waarde naar 1.0 voor een betere simulatie
     total_time = 20
     steps = int(total_time // simulation_cycle)
-
 
     run_point_robot(n_steps=steps, render=True)
