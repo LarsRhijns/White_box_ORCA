@@ -5,8 +5,9 @@ from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 from MotionPlanningEnv.sphereObstacle import SphereObstacle
 import numpy as np
 from Observation import Observation
+import pybullet as pb
 
-orca_update_cycle = 2
+orca_update_cycle = 3
 simulation_cycle = 0.01
 radius = 0.2 # As defined in pointRobot.urdf
 robot_amount = 5
@@ -15,6 +16,20 @@ velocity = 0.5
 total_time = 20
 steps = int(total_time // simulation_cycle)
 obstacle_radius = 0.5
+colors = [[1.0, 0.0, 0.0], # Red
+          [0.0, 1.0, 0.0], # Green
+          [0.0, 0.0, 1.0], # Blue
+          [1.0, 1.0, 0.0], # Yellow
+          [0.0, 1.0, 1.0], # Cyan
+          [1.0, 0.0, 1.0], # Pink
+          [0.0, 0.0, 0.0], # Black
+          [0.5, 0.0, 0.0], # Dark red
+          [0.0, 0.5, 0.0], # Dark green
+          [0.0, 0.0, 0.5], # Dark blue
+          [0.5, 0.5, 0.0], # Ugly green
+          [0.5, 0.0, 0.5], # Purple
+          [0.0, 0.5, 0.5], # Darker cyan
+          ]
 
 obst1Dict = {
         "type": "sphere",
@@ -29,6 +44,12 @@ def fetch_positions(last_observation):
 
     return positions
 
+def gym_plot_velocities(positions, velocities):
+    z_offset = [0, 0, 0.1]
+
+    for i, position in enumerate(positions):
+        pb.addUserDebugLine(position + z_offset , position + velocities[i] * simulation_cycle + z_offset, lineColorRGB=colors[i], lifeTime=0, lineWidth=5)
+
 
 def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     robots = []
@@ -36,6 +57,9 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         robots.append(GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"))
 
     env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
+    # pb.computeViewMatrix(cameraEyePosition=[0, 0, 5.0], cameraTargetPosition=[0.0, 0.0, 0.0], cameraUpVector=[1.0, 0.0, 0.0])
+    w, h, vmat,projmat,camup,camfwd,hor,ver,yaw,pitch,dist,target = pb.getDebugVisualizerCamera()
+    pb.resetDebugVisualizerCamera(dist, 0, -80, target)
     n = env.n()
 
     ns_per_robot = env.ns_per_robot()  # DoF per robot
@@ -77,6 +101,8 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
             print(new_velocities)
             obser.update_velocities(new_velocities)
             # obser.update_orca_plot()
+
+        gym_plot_velocities(new_positions, new_velocities)
 
         action = np.array(new_velocities).reshape(action.shape[0])
 
