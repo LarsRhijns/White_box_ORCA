@@ -1,35 +1,41 @@
 import gym
 import sys
-sys.path.append("gym_envs_urdfs")
 from urdfenvs.robots.generic_urdf import GenericUrdfReacher
 from MotionPlanningEnv.sphereObstacle import SphereObstacle
 import numpy as np
 from Observation import Observation
 import pybullet as pb
+from Robot import Robot
+import time
+sys.path.append("gym_envs_urdfs")
 
-orca_update_cycle = 3
+orca_update_cycle = 1
 simulation_cycle = 0.01
-radius = 0.2 # As defined in pointRobot.urdf
+radius = 0.2  # As defined in pointRobot.urdf
 robot_amount = 5
 circle_radius = 2
-velocity = 0.5
-total_time = 20
+velocity = 1
+total_time = 200
 steps = int(total_time // simulation_cycle)
 obstacle_radius = 0.5
-colors = [[1.0, 0.0, 0.0], # Red
-          [0.0, 1.0, 0.0], # Green
-          [0.0, 0.0, 1.0], # Blue
-          [1.0, 1.0, 0.0], # Yellow
-          [0.0, 1.0, 1.0], # Cyan
-          [1.0, 0.0, 1.0], # Pink
-          [0.0, 0.0, 0.0], # Black
-          [0.5, 0.0, 0.0], # Dark red
-          [0.0, 0.5, 0.0], # Dark green
-          [0.0, 0.0, 0.5], # Dark blue
-          [0.5, 0.5, 0.0], # Ugly green
-          [0.5, 0.0, 0.5], # Purple
-          [0.0, 0.5, 0.5], # Darker cyan
+obstacle_run = False
+plot_velocities = False
+
+colors = [[1.0, 0.0, 0.0],  # Red
+          [0.0, 1.0, 0.0],  # Green
+          [0.0, 0.0, 1.0],  # Blue
+          [1.0, 1.0, 0.0],  # Yellow
+          [0.0, 1.0, 1.0],  # Cyan
+          [1.0, 0.0, 1.0],  # Pink
+          [0.0, 0.0, 0.0],  # Black
+          [0.5, 0.0, 0.0],  # Dark red
+          [0.0, 0.5, 0.0],  # Dark green
+          [0.0, 0.0, 0.5],  # Dark blue
+          [0.5, 0.5, 0.0],  # Ugly green
+          [0.5, 0.0, 0.5],  # Purple
+          [0.0, 0.5, 0.5],  # Darker cyan
           ]
+
 
 obst1Dict = {
         "type": "sphere",
@@ -44,11 +50,25 @@ def fetch_positions(last_observation):
 
     return positions
 
-def gym_plot_velocities(positions, velocities):
-    z_offset = [0, 0, 0.1]
 
+def gym_plot_velocities(positions, velocities):
     for i, position in enumerate(positions):
-        pb.addUserDebugLine(position + z_offset , position + velocities[i] * simulation_cycle + z_offset, lineColorRGB=colors[i], lifeTime=0, lineWidth=5)
+        origin = position
+        origin[2] = 0.1
+        end = position + velocities[i] * simulation_cycle
+        end[2] = 0.1
+        pb.addUserDebugLine(origin, end, lineColorRGB=colors[i], lifeTime=0, lineWidth=5)
+
+
+def check_for_finished(obstacles):
+    all_finished = True
+    for robot in obstacles:
+        if isinstance(robot, Robot):
+            position_difference = abs(np.linalg.norm(robot.get_position() - robot.get_goal()))
+            if position_difference > 0.01:
+                all_finished = False
+                return all_finished
+    return all_finished
 
 
 def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
@@ -57,8 +77,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         robots.append(GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"))
 
     env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
-    # pb.computeViewMatrix(cameraEyePosition=[0, 0, 5.0], cameraTargetPosition=[0.0, 0.0, 0.0], cameraUpVector=[1.0, 0.0, 0.0])
-    w, h, vmat,projmat,camup,camfwd,hor,ver,yaw,pitch,dist,target = pb.getDebugVisualizerCamera()
+    w, h, vmat, projmat, camup, camfwd, hor, ver, yaw, pitch, dist, target = pb.getDebugVisualizerCamera()
     pb.resetDebugVisualizerCamera(dist, 0, -80, target)
     n = env.n()
 
@@ -80,19 +99,24 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
 
         obser.add_robot3(position, radius, referece_velocity, -position, i)
 
-    # obser.add_static(np.array([0, 0, 0]), obstacle_radius)
-
     ob = env.reset(pos=initial_positions)
 
-    # env.add_obstacle(SphereObstacle(name="simpleSphere", content_dict=obst1Dict))
+    if obstacle_run:
+        obser.add_static(np.array([0, 0, 0]), obstacle_radius)
+        env.add_obstacle(SphereObstacle(name="simpleSphere", content_dict=obst1Dict))
 
     print(f"Initial observation : {ob}")
 
     history = [ob]
     new_velocities = None
     for step in range(n_steps):
+        if check_for_finished(obser.get_obstacles()):
+            print("All robots reached the goal, closing in 10 seconds...")
+            time.sleep(10)
+            break
+
         current_time = step * simulation_cycle
-        print("\n********************* TIME: ", current_time, " *********************")
+        # print("\n********************* TIME: ", current_time, " *********************")
         new_positions = fetch_positions(history[-1])
         obser.update_positions(new_positions)
 
@@ -102,7 +126,14 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
             obser.update_velocities(new_velocities)
             # obser.update_orca_plot()
 
-        gym_plot_velocities(new_positions, new_velocities)
+        if plot_velocities:
+            gym_plot_velocities(new_positions, new_velocities)
+
+        # If reference velocity is activated, velocity will be updated per step
+        for i, obstacle in enumerate(obser.obstacles):
+            if isinstance(obstacle, Robot):  # Check if obstacle is a robot
+                if not obstacle.follow_orca:  # Check if robot is following orca cycle
+                    new_velocities[i] = obstacle.Vref
 
         action = np.array(new_velocities).reshape(action.shape[0])
 
