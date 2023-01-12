@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Static variables
-Vmax = 5
+Vmax = 1
 accel = 5
 t = 0
 T = 20
-dt = 0.001
+# dt = 0.01
 
 def euc_dist(p1, p2):
     return np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
@@ -36,7 +36,7 @@ def calculate_vref(position, current_velocity, goal, dt):
         return norm_vector_to_goal * Vmax
     elif (distance_to_goal > accel_distance):
         # print("Accelerating...")
-        vnew = magnitude_Vcur + accel * dt
+        vnew = Vmax
         return norm_vector_to_goal * vnew
 
 
@@ -46,6 +46,7 @@ if __name__ == "__main__":
     goal_position = np.array([20, 20])
     position = np.zeros(2)
     Vcur = np.zeros(2)
+    dt = 0.001
 
     positions = []
     velocities = []

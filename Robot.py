@@ -4,6 +4,7 @@ from VelocityObstacle import VelocityObstacle
 from Solve import Solve
 from matplotlib.patches import Polygon
 import numpy as np
+from velocity_reference import calculate_vref
 
 
 class Robot(Obstacle):
@@ -54,11 +55,12 @@ class Robot(Obstacle):
         else:
             return self.get_reference_velocity()
 
-    def update_velocity_reference(self):
-        vector_to_goal = self.goal - self.pos
-        norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
+    def update_velocity_reference(self, dt):
+        # vector_to_goal = self.goal - self.pos
+        # norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
 
-        self.set_reference_velocity(norm_vector_to_goal * 1)
+        v_ref = calculate_vref(self.pos, self.Vref, self.goal, dt)
+        self.set_reference_velocity(v_ref)
 
     # Plot the velocity obstacle shape and constraints
     def plot_orca_info(self):

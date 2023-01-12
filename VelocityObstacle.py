@@ -14,9 +14,9 @@ class VelocityObstacle:
 
         self.tau = tau
         self.rel_pos = (other_obstacle.pos - current_obstacle.pos) / self.tau
-        self.rel_vel = current_obstacle.Vcur - other_obstacle.Vcur
+        self.rel_vel = current_obstacle.Vref - other_obstacle.Vref
         if isinstance(other_obstacle, Static):
-            self.radius = (current_obstacle.radius + other_obstacle.radius + 0.2) / self.tau
+            self.radius = (current_obstacle.radius + other_obstacle.radius + 0.0) / self.tau
         else:
             self.radius = (current_obstacle.radius + other_obstacle.radius + 0.2) / self.tau
         self.constraint = None
@@ -66,9 +66,9 @@ class VelocityObstacle:
             #     u = -u
 
             if isinstance(self.other_obstacle, Static):
-                constraint_point = self.current_obstacle.Vcur[:2] + u
+                constraint_point = self.current_obstacle.Vref[:2] + u
             else:
-                constraint_point = self.current_obstacle.Vcur[:2] + 0.5 * u
+                constraint_point = self.current_obstacle.Vref[:2] + 0.5 * u
 
             # Check if the solution is a vertical line, in other words a very high direction coefficient:
             if abs(u[1]) < 0.001:

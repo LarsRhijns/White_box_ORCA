@@ -13,16 +13,16 @@ from Robot import Robot
 import time
 from Static import Static
 
-orca_update_cycle = 1
+orca_update_cycle = 4
 simulation_cycle = 0.01
 obser = Observation(orca_update_cycle, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 5
+robot_amount = 3
 circle_radius = 2
-total_time = 20
+total_time = 40
 
 obstacle_radius = 0.5
-obstacle_run = False
+obstacle_run = True
 obstacle_location = [0.0, 0.01, 0.0]
 plot_velocities = False
 steps = int(total_time // simulation_cycle)
@@ -173,9 +173,9 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         count += ns_per_robot[i]
 
         if i == custom_cooperation_factor_index:
-            obser.add_robot(position, radius, -position, i, cooperation_factor)
+            obser.add_robot(position, radius, -position, i, simulation_cycle, cooperation_factor=cooperation_factor)
         else:
-            obser.add_robot(position, radius, -position, i)
+            obser.add_robot(position, radius, -position, i, simulation_cycle)
 
     ob = env.reset(pos=initial_positions)
 
@@ -197,9 +197,9 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         current_time = step * simulation_cycle
         # print("\n********************* TIME: ", current_time, " *********************")
         new_positions = fetch_positions(history[-1])
-        obser.update_positions(new_positions)
+        obser.update_positions(new_positions, simulation_cycle)
 
-        if current_time % orca_update_cycle == 0:
+        if current_time % (orca_update_cycle / 8) == 0:
             new_velocities = obser.orca_cycle()
             obser.update_velocities(new_velocities)
             obser.update_orca_plot()

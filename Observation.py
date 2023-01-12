@@ -21,13 +21,13 @@ class Observation:
 
     # Add a other_obstacle to the obstacles
     # Python has no overloading therefore the indexation
-    def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, cooperation_factor=0.5) -> list:
+    def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, dt: float, cooperation_factor=0.5, ) -> list:
         robot = Robot(position, radius, index)
         robot.set_goal(goal)
         # robot.set_cooperation_factor(cooperation_factor)
-        # robot.update_velocity_reference()
-        # robot.set_matching_velocity()
-        robot.set_current_velocity(np.zeros(3))
+        robot.update_velocity_reference(dt)
+        robot.set_matching_velocity()
+        # robot.set_current_velocity(np.zeros(3))
 
         self.obstacles.append(robot)
         return self.obstacles
@@ -62,11 +62,11 @@ class Observation:
 
         return new_velocities
 
-    def update_positions(self, new_positions: list) -> list:
+    def update_positions(self, new_positions: list, dt: float) -> list:
         for i in range(len(self.obstacles)):
             if isinstance(self.obstacles[i], Robot):
                 self.obstacles[i].set_position(new_positions[i])
-                self.obstacles[i].update_velocity_reference()
+                self.obstacles[i].update_velocity_reference(dt)
 
         return self.obstacles
 
