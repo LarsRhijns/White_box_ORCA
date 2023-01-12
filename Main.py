@@ -21,7 +21,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
     n = env.n()
 
-    ns_per_robot = env.ns_per_robot()  # DoF per robot
+    ns_per_robot = env.ns_per_robot()  # DoF per other_obstacle
     initial_positions = np.zeros((len(robots), ns_per_robot[0]))
     action = np.zeros(n)
     # mount_positions = np.array([np.array([0.0, i, 0.0]) for i in range(len(ns_per_robot))])

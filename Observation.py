@@ -19,12 +19,16 @@ class Observation:
     def get_obstacles(self):
         return self.obstacles
 
-    # Add a robot to the obstacles
+    # Add a other_obstacle to the obstacles
     # Python has no overloading therefore the indexation
     def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, cooperation_factor=0.5) -> list:
         robot = Robot(position, radius, index)
         robot.set_goal(goal)
-        robot.set_cooperation_factor(cooperation_factor)
+        # robot.set_cooperation_factor(cooperation_factor)
+        # robot.update_velocity_reference()
+        # robot.set_matching_velocity()
+        robot.set_current_velocity(np.zeros(3))
+
         self.obstacles.append(robot)
         return self.obstacles
 
@@ -50,9 +54,11 @@ class Observation:
     # Returns a list with all the new velocities for the obstacles (as tuples)
     def orca_cycle(self) -> list:
         new_velocities = []  # Will be a list with tuples
-        for i in range(len(self.obstacles)):
-            if isinstance(self.obstacles[i], Robot):
-                new_velocities.append(self.obstacles[i].orca_cycle(self.obstacles, self.orca_update_cycle))
+        for obstacle in self.obstacles:
+            if isinstance(obstacle, Robot):
+                new_velocity = obstacle.orca_cycle(self.obstacles, self.orca_update_cycle)
+                # obstacle.set_current_velocity(new_velocity)
+                new_velocities.append(new_velocity)
 
         return new_velocities
 
@@ -60,7 +66,7 @@ class Observation:
         for i in range(len(self.obstacles)):
             if isinstance(self.obstacles[i], Robot):
                 self.obstacles[i].set_position(new_positions[i])
-                self.obstacles[i].update_velocity_reference(self.simulation_cycle)
+                self.obstacles[i].update_velocity_reference()
 
         return self.obstacles
 
@@ -80,7 +86,7 @@ class Observation:
             self.vo_plots.append(vo_plot)
             self.constraint_plots.append(constrain_plot)
         else:
-            raise RuntimeError("The selected plot index is not a robot")
+            raise RuntimeError("The selected plot index is not a other_obstacle")
 
         # plt.show(block=True)
 

@@ -4,6 +4,7 @@ from scipy.optimize import linprog
 from shapely.geometry import Point, Polygon
 from shapely.ops import nearest_points
 
+
 class Solve:
     def __init__(self, constraints):
         self.constraints = constraints
@@ -71,7 +72,7 @@ class Solve:
             warnings.warn("No solution found", Warning)
 
     def add_bbox(self, A, b, xrange, yrange):
-        # Determine area near robot so solution isn't inf
+        # Determine area near other_obstacle so solution isn't inf
         A = np.vstack((A, [
             [-1, 0],
             [1, 0],

@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
         for i in range(len(ob.obstacles)):
             robot = ob.obstacles[i]
-            # print(robot.toString())
+            # print(other_obstacle.toString())
             new_positions.append(robot.get_position() + robot.get_current_velocity() * simulation_cycle)
 
         ob.update_positions(new_positions)

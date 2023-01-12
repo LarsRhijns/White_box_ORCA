@@ -31,7 +31,7 @@ class Robot(Obstacle):
     # Robot should set its Vcur to this calculate velocity vector.
     # Return a tuple
     def orca_cycle(self, obstacles: list, dt: float) -> np.ndarray:
-        # print("Orca cycle of robot ", self.index)
+        # print("Orca cycle of other_obstacle ", self.index)
         self.velocity_obstacles: list = []
         constraints = None
 
@@ -54,26 +54,11 @@ class Robot(Obstacle):
         else:
             return self.get_reference_velocity()
 
-    def update_velocity_reference(self, dt):
+    def update_velocity_reference(self):
         vector_to_goal = self.goal - self.pos
         norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
 
-        # # Euclidean distance
-        # distance_to_goal = np.linalg.norm(vector_to_goal)
-        # magnitude_Vcur = np.linalg.norm(self.Vcur)
-        # accel_distance = (0.5 * magnitude_Vcur ** 2 / self.accel)
-        #
-        # # Decelerating
-        # if distance_to_goal <= accel_distance:
-        #     self.set_reference_velocity(norm_vector_to_goal * (magnitude_Vcur - self.accel * dt))
-        # # Accelerating
-        # elif distance_to_goal > accel_distance:
-        #     self.set_reference_velocity(norm_vector_to_goal * (magnitude_Vcur + self.accel * dt))
-        # # Maximum speed
-        # else:
-        #     self.set_reference_velocity(norm_vector_to_goal * self.Vmax)
-
-        self.set_reference_velocity(norm_vector_to_goal * 1.0)
+        self.set_reference_velocity(norm_vector_to_goal * 1)
 
     # Plot the velocity obstacle shape and constraints
     def plot_orca_info(self):
@@ -137,7 +122,7 @@ class Robot(Obstacle):
         if v_cur.shape[0] < 3:
             raise RuntimeError
 
-        # Determines if robot follows reference velocity or orca velocity
+        # Determines if other_obstacle follows current_obstacle velocity or orca velocity
         threshold = 0.001  # A threshold for checking if velocities the same
         velocity_difference = abs(np.linalg.norm(v_cur - self.get_reference_velocity()))
 
@@ -150,14 +135,17 @@ class Robot(Obstacle):
 
         self.Vcur = v_cur
 
-    # Get function for its reference velocity
+    def set_matching_velocity(self):
+        self.Vcur = self.Vref
+
+    # Get function for its current_obstacle velocity
     def get_reference_velocity(self) -> np.ndarray:
         return self.Vref
 
     def get_goal(self):
         return self.goal
 
-    # Setter for the reference velocity.
+    # Setter for the current_obstacle velocity.
     def set_reference_velocity(self, v_ref: np.ndarray):
         self.Vref = v_ref  # (Vref_x, Vref_y, Vref_z) (z is zero)
 

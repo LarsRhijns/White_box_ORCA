@@ -13,22 +13,22 @@ from Robot import Robot
 import time
 from Static import Static
 
-orca_update_cycle = 2
+orca_update_cycle = 1
 simulation_cycle = 0.01
 obser = Observation(orca_update_cycle, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 3
+robot_amount = 5
 circle_radius = 2
 total_time = 20
 
-obstacle_radius = 1
-obstacle_run = True
-obstacle_location = [0.0, 0.1, 0.0]
+obstacle_radius = 0.5
+obstacle_run = False
+obstacle_location = [0.0, 0.01, 0.0]
 plot_velocities = False
 steps = int(total_time // simulation_cycle)
 
 custom_cooperation_factor_index = 0
-cooperation_factor = 0.5
+cooperation_factor = 1
 
 colors = [[1.0, 0.0, 0.0],  # Red
           [0.0, 1.0, 0.0],  # Green
@@ -42,6 +42,7 @@ colors = [[1.0, 0.0, 0.0],  # Red
           [0.5, 0.5, 0.0],  # Ugly green
           [0.5, 0.0, 0.5],  # Purple
           [0.0, 0.5, 0.5],  # Darker cyan
+          [0.0, 0.0, 0.0]  # Black
           ]
 
 obst1Dict = {
@@ -157,7 +158,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
     pb.resetDebugVisualizerCamera(dist, 0, -80, target)
     n = env.n()
 
-    ns_per_robot = env.ns_per_robot()  # DoF per robot
+    ns_per_robot = env.ns_per_robot()  # DoF per other_obstacle
     initial_positions = np.zeros((len(robots), ns_per_robot[0]))
     action = np.zeros(n)
 
@@ -207,10 +208,10 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         if plot_velocities:
             gym_plot_velocities(new_positions, new_velocities)
 
-        # If reference velocity is activated, velocity will be updated per step
+        # If current_obstacle velocity is activated, velocity will be updated per step
         for i, obstacle in enumerate(obser.obstacles):
-            if isinstance(obstacle, Robot):  # Check if obstacle is a robot
-                if not obstacle.follow_orca:  # Check if robot is following orca cycle
+            if isinstance(obstacle, Robot):  # Check if obstacle is a other_obstacle
+                if not obstacle.follow_orca:  # Check if other_obstacle is following orca cycle
                     new_velocities[i] = obstacle.Vref
 
         action = np.array(new_velocities).reshape(action.shape[0])
