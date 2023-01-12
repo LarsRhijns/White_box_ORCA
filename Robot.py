@@ -27,6 +27,7 @@ class Robot(Obstacle):
         self.index = index
         self.follow_orca = True
         self.states = []
+        self.goal_reached = False
 
     # Calculate an orca cycle given a list containing Obstacles and a timestep orca_update_cycle
     # Robot should set its Vcur to this calculate velocity vector.
@@ -35,6 +36,17 @@ class Robot(Obstacle):
         # print("Orca cycle of other_obstacle ", self.index)
         self.velocity_obstacles: list = []
         constraints = None
+
+        vector_to_goal = self.goal - self.pos
+        distance_to_goal = np.linalg.norm(vector_to_goal)
+
+        if distance_to_goal < 0.01:
+            self.goal_reached = True
+            print("Robot {index} reached its goal".format(index=self.index))
+            self.set_reference_velocity(np.array([0., 0., 0.]))
+            self.set_matching_velocity()
+            return self.get_reference_velocity()
+
 
         for i in range(len(obstacles)):
             if self != obstacles[i]:
@@ -52,6 +64,19 @@ class Robot(Obstacle):
             solver = Solve(constraints)
             velocity = solver.solve(self.Vref)
             return velocity
+        else:
+            return self.get_reference_velocity()
+
+    def check_if_finished(self):
+        vector_to_goal = self.goal - self.pos
+        distance_to_goal = np.linalg.norm(vector_to_goal)
+
+        if distance_to_goal < 0.01:
+            self.goal_reached = True
+            print("Robot {index} reached its goal".format(index=self.index))
+            self.set_reference_velocity(np.array([0., 0., 0.]))
+            self.set_matching_velocity()
+            return self.get_reference_velocity()
         else:
             return self.get_reference_velocity()
 
@@ -124,7 +149,7 @@ class Robot(Obstacle):
         if v_cur.shape[0] < 3:
             raise RuntimeError
 
-        # Determines if other_obstacle follows current_obstacle velocity or orca velocity
+        # Determines if the robot follows its reference velocity or orca velocity
         threshold = 0.001  # A threshold for checking if velocities the same
         velocity_difference = abs(np.linalg.norm(v_cur - self.get_reference_velocity()))
 
@@ -154,6 +179,9 @@ class Robot(Obstacle):
     # Get function for its bounding radius
     def get_radius(self) -> int:
         return self.radius
+
+    def reached_goal(self) -> bool:
+        return self.goal_reached
 
     # Get function for its current position
     def get_position(self) -> np.ndarray:

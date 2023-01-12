@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Static variables
-Vmax = 1
+Vmax = 1.0
 accel = 5
 t = 0
 T = 20
@@ -27,15 +27,16 @@ def calculate_vref(position, current_velocity, goal, dt):
     norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
     # print("Norm vec to goal: ", norm_vector_to_goal)
 
-    if (distance_to_goal <= accel_distance):
+    if distance_to_goal <= accel_distance:
         # print("Decelerating...")
         vnew = magnitude_Vcur - accel * dt
         return norm_vector_to_goal * vnew
-    elif (magnitude_Vcur >= Vmax):
+    elif magnitude_Vcur >= Vmax:
         # print("Max speed...")
         return norm_vector_to_goal * Vmax
-    elif (distance_to_goal > accel_distance):
+    elif distance_to_goal > accel_distance:
         # print("Accelerating...")
+        # vnew = magnitude_Vcur + accel * dt
         vnew = Vmax
         return norm_vector_to_goal * vnew
 
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     goal_position = np.array([20, 20])
     position = np.zeros(2)
     Vcur = np.zeros(2)
-    dt = 0.001
+    dt = 0.01
 
     positions = []
     velocities = []

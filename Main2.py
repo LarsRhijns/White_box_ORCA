@@ -17,12 +17,12 @@ orca_update_cycle = 4
 simulation_cycle = 0.01
 obser = Observation(orca_update_cycle, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 3
-circle_radius = 2
+robot_amount = 5
+circle_radius = 3
 total_time = 40
 
 obstacle_radius = 0.5
-obstacle_run = True
+obstacle_run = False
 obstacle_location = [0.0, 0.01, 0.0]
 plot_velocities = False
 steps = int(total_time // simulation_cycle)
@@ -193,7 +193,6 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
             print("All robots reached the goal, closing in 2 seconds...")
             time.sleep(2)
             break
-
         current_time = step * simulation_cycle
         # print("\n********************* TIME: ", current_time, " *********************")
         new_positions = fetch_positions(history[-1])
@@ -210,9 +209,13 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
 
         # If current_obstacle velocity is activated, velocity will be updated per step
         for i, obstacle in enumerate(obser.obstacles):
-            if isinstance(obstacle, Robot):  # Check if obstacle is a other_obstacle
-                if not obstacle.follow_orca:  # Check if other_obstacle is following orca cycle
-                    new_velocities[i] = obstacle.Vref
+            if isinstance(obstacle, Robot):  # Check if obstacle is robot
+                if not obstacle.follow_orca:  # Check if obstacle is following orca cycle
+                    if not obstacle.reached_goal():
+                        new_velocities[i] = obstacle.check_if_finished()
+
+        # Update each robot's reference velocity since we have moved a little
+        obser.update_reference_velocities(simulation_cycle)
 
         action = np.array(new_velocities).reshape(action.shape[0])
 

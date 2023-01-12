@@ -56,8 +56,12 @@ class Observation:
         new_velocities = []  # Will be a list with tuples
         for obstacle in self.obstacles:
             if isinstance(obstacle, Robot):
-                new_velocity = obstacle.orca_cycle(self.obstacles, self.orca_update_cycle)
-                # obstacle.set_current_velocity(new_velocity)
+                if not obstacle.reached_goal():
+                    new_velocity = obstacle.orca_cycle(self.obstacles, self.orca_update_cycle)
+                    # obstacle.set_current_velocity(new_velocity)
+                else:
+                    new_velocity = np.array([0., 0., 0.])
+
                 new_velocities.append(new_velocity)
 
         return new_velocities
@@ -76,6 +80,12 @@ class Observation:
                 self.obstacles[i].set_current_velocity(new_velocities[i])
 
         return self.obstacles
+
+    def update_reference_velocities(self, dt):
+        for i in range(len(self.obstacles)):
+            if isinstance(self.obstacles[i], Robot):
+                if not self.obstacles[i].reached_goal():
+                    self.obstacles[i].update_velocity_reference(dt)
 
     def update_orca_plot(self):
         # self.ax1.cla()
