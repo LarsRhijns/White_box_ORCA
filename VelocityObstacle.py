@@ -14,9 +14,9 @@ class VelocityObstacle:
 
         self.tau = tau
         self.rel_pos = (other_obstacle.pos - current_obstacle.pos) / self.tau
-        self.rel_vel = current_obstacle.Vref - other_obstacle.Vref
+        self.rel_vel = current_obstacle.Vref - other_obstacle.Vcur
         if isinstance(other_obstacle, Static):
-            self.radius = (current_obstacle.radius + other_obstacle.radius + 0.0) / self.tau
+            self.radius = (current_obstacle.radius + other_obstacle.radius + 0.2) / self.tau
         else:
             self.radius = (current_obstacle.radius + other_obstacle.radius + 0.2) / self.tau
         self.constraint = None

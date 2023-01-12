@@ -13,16 +13,16 @@ from Robot import Robot
 import time
 from Static import Static
 
-orca_update_cycle = 4
+orca_update_cycle = 8
 simulation_cycle = 0.01
 obser = Observation(orca_update_cycle, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 3
-circle_radius = 2
+robot_amount = 21
+circle_radius = 5
 total_time = 40
 
 obstacle_radius = 0.5
-obstacle_run = True
+obstacle_run = False
 obstacle_location = [0.0, 0.01, 0.0]
 plot_velocities = False
 steps = int(total_time // simulation_cycle)
@@ -199,7 +199,7 @@ def run_point_robot(n_steps=2000, render=False, goal=False, obstacles=False):
         new_positions = fetch_positions(history[-1])
         obser.update_positions(new_positions, simulation_cycle)
 
-        if current_time % (orca_update_cycle / 8) == 0:
+        if current_time % orca_update_cycle == 0:
             new_velocities = obser.orca_cycle()
             obser.update_velocities(new_velocities)
             obser.update_orca_plot()
