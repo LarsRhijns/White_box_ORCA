@@ -23,10 +23,12 @@ class Robot(Obstacle):
 
         # Initialize dynamic properties
         self.Vmax = 1
-        self.accel = 1
         self.index = index
         self.follow_orca = True
         self.states = []
+        self.total_time = 0
+        self.travelled_distance = 0
+        self.collision_flag = False
 
     # Calculate an orca cycle given a list containing Obstacles and a timestep orca_update_cycle
     # Robot should set its Vcur to this calculate velocity vector.
@@ -50,7 +52,11 @@ class Robot(Obstacle):
 
         if constraints is not None:
             solver = Solve(constraints)
-            velocity = solver.solve(self.Vref)
+            velocity, collision_flag = solver.solve(self.Vref)
+
+            if self.collision_flag == False and collision_flag == True:
+                self.collision_flag = True
+
             return velocity
         else:
             return self.get_reference_velocity()
@@ -58,7 +64,6 @@ class Robot(Obstacle):
     def update_velocity_reference(self, dt):
         # vector_to_goal = self.goal - self.pos
         # norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
-
         v_ref = calculate_vref(self.pos, self.Vref, self.goal, dt)
         self.set_reference_velocity(v_ref)
 
@@ -91,6 +96,16 @@ class Robot(Obstacle):
                     constrain_plot["line"] = line[0]
                 else:
                     constrain_plot["line"] = np.array([line[0], line[1]])
+
+            else:
+                vo_polygon = Polygon(velocity_obstacle.polygon_points)
+                # Add VO shape as polygon
+                vo_polygon.set(color="red", alpha=0.5)
+                vo_plot["VO_polygon"] = vo_polygon
+
+                # Add relative velocity and point that defines the constraint at the border of the VO
+                vo_plot["relative_vel"] = velocity_obstacle.rel_vel
+                vo_plot["border_point"] = np.array([np.NaN, np.NaN])
 
             constrain_plot["Vcur"] = self.Vcur
             constrain_plot["Vref"] = self.Vref
@@ -164,6 +179,7 @@ class Robot(Obstacle):
         if not isinstance(new_position, np.ndarray):
             raise TypeError
 
+        self.travelled_distance += np.linalg.norm(self.pos - new_position)
         self.pos = new_position  # (x, y, z) (z is zero)
         self.states.append(new_position)
 
