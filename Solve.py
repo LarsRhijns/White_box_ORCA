@@ -39,7 +39,7 @@ class Solve:
 
         bbox = [(-30, 30), (-30, 30)]
         points, int_point = self.plot_convex_set(A, b, bbox)
-        collision_flag = False
+        no_solution_flag = False
         if points is not None:
 
             poly = Polygon(points)
@@ -48,9 +48,9 @@ class Solve:
             solution = np.array(list(list(p1.coords)[0]) + [0])
         else:
             solution = np.array([0, 0, 0])
-            collision_flag = True
+            no_solution_flag = True
 
-        return solution, collision_flag
+        return solution, no_solution_flag
 
     def feasible_point(self, A, b):
         # finds the center of the largest sphere fitting in the convex hull

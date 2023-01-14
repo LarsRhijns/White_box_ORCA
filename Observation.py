@@ -24,7 +24,7 @@ class Observation:
     def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, dt: float, cooperation_factor=0.5, ) -> list:
         robot = Robot(position, radius, index)
         robot.set_goal(goal)
-        # robot.set_cooperation_factor(cooperation_factor)
+        robot.set_cooperation_factor(cooperation_factor)
         robot.update_velocity_reference(dt)
         robot.set_matching_velocity()
         # robot.set_current_velocity(np.zeros(3))
@@ -62,11 +62,25 @@ class Observation:
 
         return new_velocities
 
+    def check_for_collisions(self):
+        for current in self.obstacles:
+            pos1 = current.pos
+            for other in self.obstacles:
+                if other != current:
+                    pos2 = other.pos
+                    distance = np.linalg.norm(pos1 - pos2)
+
+                    if distance <= current.radius + other.radius + 0.001:
+                        current.collision_flag = True
+                        other.collision_flag = True
+
     def update_positions(self, new_positions: list, dt: float) -> list:
-        for i in range(len(self.obstacles)):
-            if isinstance(self.obstacles[i], Robot):
-                self.obstacles[i].set_position(new_positions[i])
-                self.obstacles[i].update_velocity_reference(dt)
+        for i, obstacle in enumerate(self.obstacles):
+            if isinstance(obstacle, Robot):
+                obstacle.set_position(new_positions[i])
+                obstacle.update_velocity_reference(dt)
+
+        self.check_for_collisions()
 
         return self.obstacles
 

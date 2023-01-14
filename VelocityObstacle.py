@@ -3,8 +3,6 @@ import numpy as np
 from shapely.geometry import Polygon, Point
 from shapely.ops import nearest_points
 from Static import Static
-from Obstacle import Obstacle
-import matplotlib.pyplot as plt
 
 
 class VelocityObstacle:
@@ -66,9 +64,14 @@ class VelocityObstacle:
             #     u = -u
 
             if isinstance(self.other_obstacle, Static):
-                constraint_point = self.current_obstacle.Vref[:2] + u
+                factor = 1
+            elif self.current_obstacle.cooperation_factor < self.other_obstacle.cooperation_factor:
+                factor = self.current_obstacle.cooperation_factor
+            elif self.current_obstacle.cooperation_factor > self.other_obstacle.cooperation_factor:
+                factor = 1 - self.other_obstacle.cooperation_factor
             else:
-                constraint_point = self.current_obstacle.Vref[:2] + 0.5 * u
+                factor = 0.5
+            constraint_point = self.current_obstacle.Vref[:2] + factor * u
 
             # Check if the solution is a vertical line, in other words a very high direction coefficient:
             if abs(u[1]) < 0.001:

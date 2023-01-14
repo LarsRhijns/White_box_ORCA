@@ -28,15 +28,21 @@ class Robot(Obstacle):
         self.states = []
         self.total_time = 0
         self.travelled_distance = 0
+
+        # Flags
+        self.no_solution_flag = False
         self.collision_flag = False
+        self.goal_reached = False
 
     # Calculate an orca cycle given a list containing Obstacles and a timestep orca_update_cycle
     # Robot should set its Vcur to this calculate velocity vector.
     # Return a tuple
     def orca_cycle(self, obstacles: list, dt: float) -> np.ndarray:
-        # print("Orca cycle of other_obstacle ", self.index)
         self.velocity_obstacles: list = []
         constraints = None
+
+        if self.cooperation_factor == 0:
+            return self.get_reference_velocity()
 
         for i in range(len(obstacles)):
             if self != obstacles[i]:
@@ -48,23 +54,25 @@ class Robot(Obstacle):
                 elif constraint is not None:
                     constraints = np.vstack((constraints, constraint))
 
-        # print(constraints)
-
         if constraints is not None:
             solver = Solve(constraints)
-            velocity, collision_flag = solver.solve(self.Vref)
+            velocity, solution_flag = solver.solve(self.Vref)
 
-            if self.collision_flag == False and collision_flag == True:
-                self.collision_flag = True
+            if self.no_solution_flag == False and solution_flag == True:
+                self.no_solution_flag = True
 
             return velocity
         else:
             return self.get_reference_velocity()
 
     def update_velocity_reference(self, dt):
+        # if self.goal_reached == False:
         # vector_to_goal = self.goal - self.pos
-        # norm_vector_to_goal = vector_to_goal / np.linalg.norm(vector_to_goal)
+        # v_ref = vector_to_goal / np.linalg.norm(vector_to_goal)
+        # else:
+        #     v_ref = np.zeros(3)
         v_ref = calculate_vref(self.pos, self.Vref, self.goal, dt)
+        # print("Updated Vref of robot ", self.index, " to: ", v_ref)
         self.set_reference_velocity(v_ref)
 
     # Plot the velocity obstacle shape and constraints
@@ -179,7 +187,8 @@ class Robot(Obstacle):
         if not isinstance(new_position, np.ndarray):
             raise TypeError
 
-        self.travelled_distance += np.linalg.norm(self.pos - new_position)
+        if self.goal_reached == False:
+            self.travelled_distance += np.linalg.norm(self.pos - new_position)
         self.pos = new_position  # (x, y, z) (z is zero)
         self.states.append(new_position)
 
@@ -192,7 +201,6 @@ class Robot(Obstacle):
 
     def set_cooperation_factor(self, factor):
         self.cooperation_factor = factor
-        print(factor)
 
     def toString(self) -> str:
         str = "(Robot {ind} p={pos}, r={rad}, v={vel})".format(ind=self.index, pos=self.pos, rad=self.radius, vel=self.Vcur)

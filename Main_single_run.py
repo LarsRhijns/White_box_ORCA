@@ -13,16 +13,15 @@ import pybullet as pb
 from Robot import Robot
 import time
 from Static import Static
-import math
 
-orca_update_cycle = 4
+tau = 16
 simulation_cycle = 0.01
-obser = Observation(orca_update_cycle, simulation_cycle)
+orca_update_cycle = 0.5
+obser = Observation(tau, simulation_cycle)
 radius = 0.2  # As defined in pointRobot.urdf
-# robot_amount = 13
-circle_radius = 5
+robot_amount = 10
+circle_radius = 4
 total_time = 30
-
 obstacle_radius = 0.5
 obstacle_run = False
 obstacle_location = [0.0, 0.01, 0.0]
@@ -30,7 +29,7 @@ plot_velocities = False
 steps = int(total_time // simulation_cycle)
 
 custom_cooperation_factor_index = 0
-cooperation_factor = 1
+cooperation_factor = 0.5
 
 colors = [[1.0, 0.0, 0.0],  # Red
           [0.0, 1.0, 0.0],  # Green
@@ -76,8 +75,10 @@ def check_for_finished(obstacles):
         if isinstance(robot, Robot):
             position_difference = abs(np.linalg.norm(robot.get_position() - robot.get_goal()))
             if position_difference > 0.01:
+                robot.goal_reached = False
                 all_finished = False
-                return all_finished
+            else:
+                robot.goal_reached = True
     return all_finished
 
 
@@ -151,7 +152,7 @@ def update_plots(val):
     plt.setp(ax3, xlim=[-size, size], ylim=[-size, size], xlabel="x", ylabel="y", title="Configuration space")
 
 
-def run_point_robot(n_steps=2000, render=False, obser=obser, robot_amount=5, tau=2):
+def run_point_robot(n_steps=2000, render=False):
     robots = []
     for i in range(robot_amount):
         robots.append(GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"))
@@ -199,11 +200,10 @@ def run_point_robot(n_steps=2000, render=False, obser=obser, robot_amount=5, tau
             break
 
         sim_time = step * simulation_cycle
-        # print("\n********************* TIME: ", current_time, " *********************")
         new_positions = fetch_positions(history[-1])
         obser.update_positions(new_positions, simulation_cycle)
 
-        if sim_time % tau == 0:
+        if sim_time % orca_update_cycle == 0:
             new_velocities = obser.orca_cycle()
             obser.update_velocities(new_velocities)
             obser.update_orca_plot()
@@ -224,51 +224,38 @@ def run_point_robot(n_steps=2000, render=False, obser=obser, robot_amount=5, tau
         history.append(ob)
     env.close()
 
-    return history, obser, sim_time
+    return history, sim_time
 
 
 if __name__ == "__main__":
-    robots_amount = [3, 5]
-    taus = [2]
+    hist, sim_time = run_point_robot(n_steps=steps, render=True)
 
-    for robot_amount in robots_amount:
-        data = np.zeros((len(taus), 6))
-        for i, tau in enumerate(taus):
-            observation = Observation(tau, simulation_cycle)
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)  # note we must use plt.subplots, not plt.subplot
 
-            hist, obser, sim_time = run_point_robot(n_steps=steps, render=True, obser=observation, robot_amount=robot_amount, tau=tau)
+    slider_axis = fig.add_axes([0.25, 0.1, 0.65, 0.03])
+    index_slider = Slider(
+        ax=slider_axis,
+        label='Cycle index',
+        valmin=0,
+        valmax=len(obser.vo_plots),
+        valinit=0,
+        valstep=1
+    )
+    index_slider.on_changed(update_plots)
 
-            fig, (ax1, ax2, ax3) = plt.subplots(1, 3)  # note we must use plt.subplots, not plt.subplot
+    data = np.zeros((robot_amount, 6))
+    counter = 0
+    for obstacle in obser.obstacles:
+        if isinstance(obstacle, Robot):
+            data[counter] = np.array([counter, obstacle.goal_reached, obstacle.travelled_distance, 2 * circle_radius, obstacle.collision_flag, obstacle.no_solution_flag])
+            counter += 1
 
-            slider_axis = fig.add_axes([0.25, 0.1, 0.65, 0.03])
-            index_slider = Slider(
-                ax=slider_axis,
-                label='Cycle index',
-                valmin=0,
-                valmax=len(obser.vo_plots),
-                valinit=0,
-                valstep=1
-            )
-            # index_slider.on_changed(update_plots)
+    df = pd.DataFrame(data, columns=["Robot index", "Goal reached", "Traveled distance", "Optimal path", "Collision", "No solution"])
 
-            distances = np.zeros(robot_amount)
-            t_max = 0
-            collision_flag = 0
-            for j, obstacle in enumerate(obser.obstacles):
-                if isinstance(obstacle, Robot):
-                    distances[j] = obstacle.travelled_distance
+    print("Simulation information:")
+    print(df.to_string())
+    print("Average travelled distance: ", df["Travelled distance"].mean())
+    print("STD travelled distance: ", df["Travelled distance"].std())
+    print("Simulation time: ", sim_time)
 
-                    if obstacle.collision_flag == True:
-                        collision_flag = 1
-
-                    if obstacle.total_time > t_max:
-                        t_max = obstacle.total_time
-
-            data[i] = np.array([tau, np.average(distances), circle_radius * 2, np.std(distances), sim_time, collision_flag])
-
-        df = pd.DataFrame(data)
-        df.to_csv("data/robot_amount" + str(robot_amount) + ".csv", index=False, header=["Tau", "avg distance", "optimal path", "std distance", "sim time", "Collision"])
-        # plt.show()
-
-# distance: gemiddilde afstand - shortest path
-# std: std afstand
+    plt.show()

@@ -10,6 +10,7 @@ class Static(Obstacle):
 
         self.Vcur = np.zeros(3)
         self.Vref = np.zeros(3)
+        self.collision_flag = False
 
     def toString(self) -> str:
         str = "(Static p={pos}, r={rad})".format(pos=self.pos, rad=self.radius, vel=self.Vcur)
