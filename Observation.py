@@ -4,7 +4,6 @@ from Robot import Robot
 from Static import Static
 import numpy as np
 
-
 class Observation:
     def __init__(self, orca_update_cycle: float, simulation_cycle: float):
         self.obstacles: list[Obstacle] = []
@@ -19,7 +18,7 @@ class Observation:
     def get_obstacles(self):
         return self.obstacles
 
-    # Add a other_obstacle to the obstacles
+    # Add an other_obstacle to the obstacles
     # Python has no overloading therefore the indexation
     def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, dt: float, cooperation_factor=0.5, ) -> list:
         robot = Robot(position, radius, index)

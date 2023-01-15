@@ -6,7 +6,6 @@ Vmax = 1
 accel = 5
 t = 0
 T = 20
-# dt = 0.01
 
 def euc_dist(p1, p2):
     return np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
@@ -37,6 +36,7 @@ def calculate_vref(position, current_velocity, goal, dt):
     elif (distance_to_goal > accel_distance):
         # print("Accelerating...")
         vnew = Vmax
+
         return norm_vector_to_goal * vnew
 
 
