@@ -19,4 +19,5 @@ Run the code below to initialize the repository. Run it in the location you want
     git submodule update
     cd gym_envs_urdfs
     pip3 install .
+    pip install shapely
 ```
