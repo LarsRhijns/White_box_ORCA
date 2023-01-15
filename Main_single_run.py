@@ -250,7 +250,7 @@ if __name__ == "__main__":
             data[counter] = np.array([counter, obstacle.goal_reached, obstacle.travelled_distance, 2 * circle_radius, obstacle.collision_flag, obstacle.no_solution_flag])
             counter += 1
 
-    df = pd.DataFrame(data, columns=["Robot index", "Goal reached", "Traveled distance", "Optimal path", "Collision", "No solution"])
+    df = pd.DataFrame(data, columns=["Robot index", "Goal reached", "Travelled distance", "Optimal path", "Collision", "No solution"])
 
     print("Simulation information:")
     print(df.to_string())

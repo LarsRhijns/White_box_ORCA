@@ -1,3 +1,5 @@
+import os
+
 import gym
 import sys
 import matplotlib.pyplot as plt
@@ -255,7 +257,16 @@ if __name__ == "__main__":
             data[i] = np.array([tau, np.average(distances), circle_radius * 2, np.std(distances), sim_time, collision_count, no_solution_count])
 
         df = pd.DataFrame(data)
-        df.to_csv("data/robot_amount" + str(robot_amount) + ".csv", index=False, header=["Tau", "Avg distance", "Optimal path", "Std distance", "Sim time", "Collision count", "No solutions count"])
+
+        # Create output directory if none exists yet
+        outdir = './data'
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        outname = "robot_amount" + str(robot_amount) + ".csv"
+        fullname = os.path.join(outdir, outname)
+
+        # Write to file
+        df.to_csv(fullname, index=False, header=["Tau", "Avg distance", "Optimal path", "Std distance", "Sim time", "Collision count", "No solutions count"])
         # plt.show()
 
 # distance: gemiddilde afstand - shortest path
