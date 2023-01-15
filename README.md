@@ -1,3 +1,6 @@
+### This project is still a WIP
+The readme will be updated soon to make usage feasible
+
 # PDM_Project
 RO47005 Project part of the course
 
