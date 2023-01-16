@@ -21,6 +21,9 @@ Conda can be very slow and get stuck, so if the above environment creation does 
 matplotlib, pybullet, gym, scipy, shapely, pandas and [urdfenvs](https://github.com/maxspahn/gym_envs_urdf/issues/136)
 (urdfenvs requires a specific installation to work, please use the link)
 
+### Running the solution
+After the environment is set up and activated, make sure your IDE is using the orca environment as python interpreter and simply run either one of the two main scripts described below.
+
 ### How to use White_box_ORCA
 There are two mains, namely in `Main_single_run.py` and `Main_simulations.py`. The first one is used to run a single 
 setting, while the latter is used to gather information about the solution in many simulations with different settings. 
