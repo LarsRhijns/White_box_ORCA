@@ -214,7 +214,7 @@ def run_point_robot(n_steps=2000, render=False):
 
         # If current_obstacle velocity is activated, velocity will be updated per step
         for i, obstacle in enumerate(obser.obstacles):
-            if isinstance(obstacle, Robot):  # Check if obstacle is a other_obstacle
+            if isinstance(obstacle, Robot):  # Check if obstacle is an other_obstacle
                 if not obstacle.follow_orca:  # Check if other_obstacle is following orca cycle
                     new_velocities[i] = obstacle.Vref
 
