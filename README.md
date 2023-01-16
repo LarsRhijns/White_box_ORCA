@@ -6,7 +6,7 @@ shows the validity of the idea behind the algorithm.
 This project was part of the RO47005 course of the TU Delft in 2022. 
 
 ### Getting started: environment setup
-Run the code below to initialize the repository. Run it in the location you want. Currently the environment is working only on Linux. To work with this repository on windows please install the packages mentioned below the commands manually.
+Run the code below to initialize the repository. Run it in the location you want. Currently the environment is working only on Linux. To work with this repository on windows please install the packages mentioned below the commands manually. <b>Note</b> that the step of creating an environment takes around 5 minutes.
 
 ```
     git clone git@github.com:LarsRhijns/White_box_ORCA.git
