@@ -1,3 +1,8 @@
+"""VelocityObstacle.py
+
+This files contains the definition of the velocity obstacle class.
+"""
+
 from matplotlib import patches
 import numpy as np
 from shapely.geometry import Polygon, Point
@@ -28,6 +33,7 @@ class VelocityObstacle:
 
         self.define_shape()  # Defines the shape of the VO
 
+    # This method define the shape of a velocity obstacle
     def define_shape(self):
         circle_centre = self.rel_pos[:2]
         self.__angle = np.arctan2(circle_centre[1], circle_centre[0])  # Calculate the angle of the relative position vector (circle centre)
@@ -40,29 +46,26 @@ class VelocityObstacle:
         # Define velocity obstacle polygon
         angle_tangent_centre = np.arctan2((self.__intersection - circle_centre)[1], (self.__intersection - circle_centre)[0])
         angles = np.arange(angle_tangent_centre, 2 * np.pi - angle_tangent_centre, step=(np.pi / 180) * 3)
-        # angles = np.arange(angle_tangent_centre, -angle_tangent_centre, step=-(np.pi / 700))
 
         circle_points = np.array([np.cos(angles) * self.radius, np.sin(angles) * self.radius]).T + circle_centre
         polygon_points_rotated = np.vstack(([20, self.__tangent_rc * 20], circle_points, [20, -self.__tangent_rc * 20], [20, self.__tangent_rc * 20]))
 
         self.polygon_points = self.rotation(polygon_points_rotated.T, self.__angle).T
 
+    # This method defines the constraint related to the velocity obstacle
     def get_constraint(self):
+        # Create polygon
         polygon = Polygon(self.polygon_points)
         point = Point(self.rel_vel[:2])
 
-        point1, point2 = nearest_points(polygon.exterior, Point(self.rel_vel))
-        self.closest_point = np.array(list(point1.coords)[0])
-        distance = np.linalg.norm(self.rel_vel[:2] - self.closest_point)
-
-        if polygon.contains(point):  # or distance < 0.01:
-            # point1, point2 = nearest_points(polygon.exterior, Point(self.rel_vel))
-            # self.closest_point = np.array(list(point1.coords)[0])
+        # Check if the velocity obstacle polygon contains the relative speed
+        if polygon.contains(point):
+            # Get the closest border point
+            point1, point2 = nearest_points(polygon.exterior, Point(self.rel_vel))
+            self.closest_point = np.array(list(point1.coords)[0])
             u = self.closest_point - self.rel_vel[:2]
 
-            # if distance < 0.01:
-            #     u = -u
-
+            # Define the cooperation factor according to the other obstacle
             if isinstance(self.other_obstacle, Static):
                 factor = 1
             elif self.current_obstacle.cooperation_factor < self.other_obstacle.cooperation_factor:
@@ -104,6 +107,7 @@ class VelocityObstacle:
 
         return vo_polygon, self.constraint, constrain_polygon, self.closest_point
 
+    # This function rotates a vector counter clockwise according to a angle
     def rotation(self, vector, angle):
         vector = vector[:2]
         matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])

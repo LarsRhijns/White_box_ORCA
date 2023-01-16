@@ -1,13 +1,18 @@
-import matplotlib.pyplot as plt
+"""Observation.py
+
+This file consist of the observation class which keeps track of all the positions and velocities of each robot
+"""
+
 from Obstacle import Obstacle
 from Robot import Robot
 from Static import Static
 import numpy as np
 
+
 class Observation:
     def __init__(self, orca_update_cycle: float, simulation_cycle: float):
         self.obstacles: list[Obstacle] = []
-        self.plot_index: int = 0  # Initialize to -1 since there are no robots to start with thus triggering an error on purpose when accessed
+        self.plot_index: int = 0
         self.orca_update_cycle: float = orca_update_cycle
         self.simulation_cycle: float = simulation_cycle
 
@@ -18,15 +23,13 @@ class Observation:
     def get_obstacles(self):
         return self.obstacles
 
-    # Add an other_obstacle to the obstacles
-    # Python has no overloading therefore the indexation
+    # This method adds a robot to the observation
     def add_robot(self, position: np.ndarray, radius: float, goal: np.ndarray, index: int, dt: float, cooperation_factor=0.5, ) -> list:
         robot = Robot(position, radius, index)
         robot.set_goal(goal)
         robot.set_cooperation_factor(cooperation_factor)
         robot.update_velocity_reference(dt)
         robot.set_matching_velocity()
-        # robot.set_current_velocity(np.zeros(3))
 
         self.obstacles.append(robot)
         return self.obstacles
@@ -48,9 +51,7 @@ class Observation:
         str += "]"
         return str
 
-    # Loop over the robots and make them all do an orca cycle
-    # TODO this assumes that the obstacle list does not change order for the simulation and this class
-    # Returns a list with all the new velocities for the obstacles (as tuples)
+    # Do an ORCA cycle for each robot
     def orca_cycle(self) -> list:
         new_velocities = []  # Will be a list with tuples
         for obstacle in self.obstacles:
@@ -61,6 +62,7 @@ class Observation:
 
         return new_velocities
 
+    # This method checks if obstacles are in collision
     def check_for_collisions(self):
         for current in self.obstacles:
             pos1 = current.pos
@@ -73,6 +75,7 @@ class Observation:
                         current.collision_flag = True
                         other.collision_flag = True
 
+    # Update all the positions in the observation
     def update_positions(self, new_positions: list, dt: float) -> list:
         for i, obstacle in enumerate(self.obstacles):
             if isinstance(obstacle, Robot):
@@ -83,6 +86,7 @@ class Observation:
 
         return self.obstacles
 
+    # Update the velocities of each robot in the observation
     def update_velocities(self, new_velocities: list) -> list:
         for i in range(len(self.obstacles)):
             if isinstance(self.obstacles[i], Robot):
@@ -90,10 +94,8 @@ class Observation:
 
         return self.obstacles
 
+    # Update the information shown in the ORCA plot
     def update_orca_plot(self):
-        # self.ax1.cla()
-        # self.ax2.cla()
-
         if isinstance(self.obstacles[self.plot_index], Robot):
             vo_plot, constrain_plot = self.obstacles[self.plot_index].plot_orca_info()
             self.vo_plots.append(vo_plot)
@@ -101,8 +103,7 @@ class Observation:
         else:
             raise RuntimeError("The selected plot index is not a other_obstacle")
 
-        # plt.show(block=True)
-
+    # Update the information shown in the position plot
     def update_position_plot(self):
         plot_per_robot = []
         for i in range(len(self.obstacles)):

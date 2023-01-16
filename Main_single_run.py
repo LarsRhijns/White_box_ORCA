@@ -1,3 +1,9 @@
+"""Main_single_tun.py
+
+This file consist of the main function to run a single simulation. After each simulation multiple plots are shown that visualize
+the situation in each ORCA cycle
+"""
+
 import gym
 import sys
 import matplotlib.pyplot as plt
@@ -14,23 +20,29 @@ from Robot import Robot
 import time
 from Static import Static
 
-tau = 16
-simulation_cycle = 0.01
-orca_update_cycle = 0.5
-obser = Observation(tau, simulation_cycle)
-radius = 0.2  # As defined in pointRobot.urdf
-robot_amount = 10
-circle_radius = 4
-total_time = 30
-obstacle_radius = 0.5
-obstacle_run = False
-obstacle_location = [0.0, 0.01, 0.0]
-plot_velocities = False
+# Define simulation variables
+tau = 16  # Collision free horizon used by ORCA
+simulation_cycle = 0.01  # Update cycle of the simulation
+orca_update_cycle = 16  # Update cycle for ORCA
+obser = Observation(tau, simulation_cycle)  # Initialize observation
+robot_amount = 10  # Amount of robots in simulation
+radius = 0.2  # Radius of robots
+circle_radius = 8  # Circle radius used for initialization of robots
+total_time = 60  # Total simulation time
+obstacle_run = False  # Obstacle run
+
+# Variables used for static obstacle run
+obstacle_radius = 0.5  # Obstacle radius
+obstacle_location = [0.0, 0.01, 0.0]  # Obstacle location
+
+plot_trajectories = False  # Plot trajectories
 steps = int(total_time // simulation_cycle)
 
-custom_cooperation_factor_index = 0
-cooperation_factor = 0.5
+# Variables used to set a custom cooperation factor
+custom_cooperation_factor_index = 0  # Select a robot based on index to change factor
+cooperation_factor = 0.5  # Custom cooperation factor
 
+# Colors used in the plot
 colors = [[1.0, 0.0, 0.0],  # Red
           [0.0, 1.0, 0.0],  # Green
           [0.0, 0.0, 1.0],  # Blue
@@ -52,6 +64,7 @@ obst1Dict = {
 }
 
 
+# Fetch positions to the simulation environment
 def fetch_positions(last_observation):
     positions = []
     for robot in last_observation.keys():
@@ -60,7 +73,8 @@ def fetch_positions(last_observation):
     return positions
 
 
-def gym_plot_velocities(positions, velocities):
+# Plot the trajectories of each robot
+def gym_plot_trajectories(positions, velocities):
     for i, position in enumerate(positions):
         origin = position
         origin[2] = 0.1
@@ -69,6 +83,7 @@ def gym_plot_velocities(positions, velocities):
         pb.addUserDebugLine(origin, end, lineColorRGB=colors[i], lifeTime=0, lineWidth=5)
 
 
+# Function that checks if all the robots reach there goal
 def check_for_finished(obstacles):
     all_finished = True
     for robot in obstacles:
@@ -82,6 +97,7 @@ def check_for_finished(obstacles):
     return all_finished
 
 
+# Update the plot when the slider is used
 def update_plots(val):
     index = index_slider.val
 
@@ -152,21 +168,26 @@ def update_plots(val):
     plt.setp(ax3, xlim=[-size, size], ylim=[-size, size], xlabel="x", ylabel="y", title="Configuration space")
 
 
+# This method is responsible for running the simulation
 def run_point_robot(n_steps=2000, render=False):
+    # Append all robot to the simulation environment
     robots = []
     for i in range(robot_amount):
         robots.append(GenericUrdfReacher(urdf="pointRobot.urdf", mode="vel"))
 
+    # Make the environment and define the camera angle
     env = gym.make("urdf-env-v0", dt=0.01, robots=robots, render=render)
     w, h, vmat, projmat, camup, camfwd, hor, ver, yaw, pitch, dist, target = pb.getDebugVisualizerCamera()
     pb.resetDebugVisualizerCamera(dist, 0, -80, target)
     n = env.n()
 
+    # Initialize some variables
     ns_per_robot = env.ns_per_robot()  # DoF per other_obstacle
     initial_positions = np.zeros((len(robots), ns_per_robot[0]))
     action = np.zeros(n)
 
     count = 0
+    # Set the initial state and goal of every robot
     for i in range(robot_amount):
         angle = ((2 * np.pi) / robot_amount) * i
         position = np.array([circle_radius * np.cos(angle), circle_radius * np.sin(angle), 0])
@@ -176,13 +197,16 @@ def run_point_robot(n_steps=2000, render=False):
         action[count: count + ns_per_robot[i]] = referece_velocity
         count += ns_per_robot[i]
 
+        # Add the robots to the observation
         if i == custom_cooperation_factor_index:
             obser.add_robot(position, radius, -position, i, simulation_cycle, cooperation_factor=cooperation_factor)
         else:
             obser.add_robot(position, radius, -position, i, simulation_cycle)
 
+    # Set the initial positions in the environment
     ob = env.reset(pos=initial_positions)
 
+    # Initialize the static obstacle
     if obstacle_run:
         obser.add_static(np.array(obstacle_location), obstacle_radius)
         env.add_obstacle(SphereObstacle(name="simpleSphere", content_dict=obst1Dict))
@@ -193,33 +217,43 @@ def run_point_robot(n_steps=2000, render=False):
     history = [ob]
     new_velocities = None
     sim_time = 0
+
+    # Simulation loop
     for step in range(n_steps):
+        # Check if all the robots reached there goal
         if check_for_finished(obser.get_obstacles()):
             print("All robots reached the goal, closing in 2 seconds...")
             time.sleep(2)
             break
 
+        # Update variables
         sim_time = step * simulation_cycle
         new_positions = fetch_positions(history[-1])
         obser.update_positions(new_positions, simulation_cycle)
 
+        # Check if orca cycle needs to be performed
         if sim_time % orca_update_cycle == 0:
-            new_velocities = obser.orca_cycle()
-            obser.update_velocities(new_velocities)
+            new_velocities = obser.orca_cycle()  # Do orca cycle
+            obser.update_velocities(new_velocities)  # Update all the velocities
+
+            # Update plots
             obser.update_orca_plot()
             obser.update_position_plot()
 
-        if plot_velocities:
-            gym_plot_velocities(new_positions, new_velocities)
+        # Plot the trajectories
+        if plot_trajectories:
+            gym_plot_trajectories(new_positions, new_velocities)
 
-        # If current_obstacle velocity is activated, velocity will be updated per step
+        # Check which robots are following orca velocities
         for i, obstacle in enumerate(obser.obstacles):
-            if isinstance(obstacle, Robot):  # Check if obstacle is an other_obstacle
-                if not obstacle.follow_orca:  # Check if other_obstacle is following orca cycle
-                    new_velocities[i] = obstacle.Vref
+            if isinstance(obstacle, Robot):  # Check if obstacle is an instance of Robot
+                if not obstacle.follow_orca:  # Check if obstacle is following orca cycle
+                    new_velocities[i] = obstacle.Vref  # Update the velocities
 
+        # Define the new actions
         action = np.array(new_velocities).reshape(action.shape[0])
 
+        # Update the simulation environment
         ob, _, _, _ = env.step(action)
         history.append(ob)
     env.close()

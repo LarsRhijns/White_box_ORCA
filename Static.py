@@ -1,3 +1,8 @@
+"""Static.py
+
+This file defines the class of a Static. This class is inheretted of the obstacle class
+"""
+
 from Obstacle import Obstacle
 import numpy as np
 

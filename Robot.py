@@ -1,3 +1,8 @@
+"""Robot.py
+
+This file defines the class of a Robot. This class is inheretted of the obstacle class
+"""
+
 from Obstacle import Obstacle
 import matplotlib.pyplot as plt
 from VelocityObstacle import VelocityObstacle
@@ -41,23 +46,34 @@ class Robot(Obstacle):
         self.velocity_obstacles: list = []
         constraints = None
 
+        # Check if the cooperation factor is zero, if so return reference velocity
         if self.cooperation_factor == 0:
             return self.get_reference_velocity()
 
+        # Loop over all the obstacles in the observation and create a velocity obstacle
         for i in range(len(obstacles)):
             if self != obstacles[i]:
+                # Create velocity obstacle object
                 VO = VelocityObstacle(self, obstacles[i], dt)
                 self.velocity_obstacles.append(VO)
+
+                # Get constraint defined by the velocity obstacle
                 constraint = self.velocity_obstacles[-1].get_constraint()
+
+                # Update definition of constraint is needed
                 if constraints is None and constraint is not None:
                     constraints = np.array([constraint])
                 elif constraint is not None:
                     constraints = np.vstack((constraints, constraint))
 
+        # Check if constrained is found
         if constraints is not None:
             solver = Solve(constraints)
+
+            # Find the optimal collision free velocity
             velocity, solution_flag = solver.solve(self.Vref)
 
+            # Check if a solution is found and update flag if needed
             if self.no_solution_flag == False and solution_flag == True:
                 self.no_solution_flag = True
 
@@ -65,14 +81,9 @@ class Robot(Obstacle):
         else:
             return self.get_reference_velocity()
 
+    # Update velocity reference
     def update_velocity_reference(self, dt):
-        # if self.goal_reached == False:
-        # vector_to_goal = self.goal - self.pos
-        # v_ref = vector_to_goal / np.linalg.norm(vector_to_goal)
-        # else:
-        #     v_ref = np.zeros(3)
         v_ref = calculate_vref(self.pos, self.Vref, self.goal, dt)
-        # print("Updated Vref of robot ", self.index, " to: ", v_ref)
         self.set_reference_velocity(v_ref)
 
     # Plot the velocity obstacle shape and constraints
@@ -123,6 +134,7 @@ class Robot(Obstacle):
 
         return vo_plot_list, constrain_plot_list
 
+    # Plot the position information
     def plot_position_info(self, color):
         # Plot top view of all robots
         plot_dic = {}
@@ -143,6 +155,7 @@ class Robot(Obstacle):
     def get_current_velocity(self) -> np.ndarray:
         return self.Vcur
 
+    # Set a current velocity
     def set_current_velocity(self, v_cur):
         if v_cur.shape[0] < 3:
             raise RuntimeError
@@ -153,13 +166,12 @@ class Robot(Obstacle):
 
         if velocity_difference <= threshold:
             self.follow_orca = False
-            # print("Following ref vel")
         else:
             self.follow_orca = True
-            # print("Following orca cycle")
 
         self.Vcur = v_cur
 
+    # Set current velocity equal to reference velocity
     def set_matching_velocity(self):
         self.Vcur = self.Vref
 
@@ -167,6 +179,7 @@ class Robot(Obstacle):
     def get_reference_velocity(self) -> np.ndarray:
         return self.Vref
 
+    # Get function for its goal
     def get_goal(self):
         return self.goal
 
@@ -187,6 +200,7 @@ class Robot(Obstacle):
         if not isinstance(new_position, np.ndarray):
             raise TypeError
 
+        # Check if the goal is reached
         if self.goal_reached == False:
             self.travelled_distance += np.linalg.norm(self.pos - new_position)
         self.pos = new_position  # (x, y, z) (z is zero)
