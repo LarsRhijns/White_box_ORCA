@@ -10,6 +10,7 @@ Run the code below to initialize the repository. Run it in the location you want
 
 ```
     git clone git@github.com:LarsRhijns/PDM_Project.git
+    cd White_box_ORCA
     git submodule init
     git submodule update
     conda env create -f environment.yml
