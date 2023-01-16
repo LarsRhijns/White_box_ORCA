@@ -1,6 +1,6 @@
 """Robot.py
 
-This file defines the class of a Robot. This class is inheretted of the obstacle class
+This file defines the class of a Robot. This class is inherent from the obstacle class
 """
 
 from Obstacle import Obstacle

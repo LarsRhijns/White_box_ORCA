@@ -1,6 +1,6 @@
 """Static.py
 
-This file defines the class of a Static. This class is inheretted of the obstacle class
+This file defines the class of a Static. This class is inherent of the obstacle class
 """
 
 from Obstacle import Obstacle
