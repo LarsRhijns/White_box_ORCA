@@ -9,7 +9,7 @@ This project was part of the RO47005 course of the TU Delft in 2022.
 Run the code below to initialize the repository. Run it in the location you want. 
 
 ```
-    git clone git@github.com:LarsRhijns/PDM_Project.git
+    git clone git@github.com:LarsRhijns/White_box_ORCA.git
     cd White_box_ORCA
     git submodule init
     git submodule update
